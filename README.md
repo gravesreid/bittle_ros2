@@ -11,7 +11,7 @@ docker run -it --net=host --device=/dev/ttyAMA0 [image_id]
 ```
 ### source your workspace
 ```bash
-source source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.bash
 ```
 ### make ros2 workspace
 ```bash
