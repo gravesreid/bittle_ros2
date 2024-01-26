@@ -28,7 +28,7 @@ sudo apt install python3-colcon-common-extensions
 ```
 ### build the package
 ```bash
-cd ~ros2_ws
+cd ~/ros2_ws
 colcon build
 ```
 
