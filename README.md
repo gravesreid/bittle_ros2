@@ -71,3 +71,35 @@ colcon build
 source install/setup.bash
 ```
 
+# set up camera library
+1) clone packages
+   ```bash
+   cd ~/ros2_ws/src
+   ```
+   ```bash
+   git clone --branch humble https://gitlab.com/boldhearts/ros2_v4l2_camera.git
+   ```
+   ```bash
+   git clone --branch humble https://github.com/ros-perception/vision_opencv.git
+   ```
+   ```bash
+   git clone --branch humble https://github.com/ros-perception/image_common.git
+   ```
+   ```bash
+   git clone --branch humble https://github.com/ros-perception/image_transport_plugins.git
+   ```
+2) install dependencies
+   ```bash
+   cd ..
+   rosdep install --from-paths src -r -y
+   ```
+3) Build packages
+   ```bash
+   colcon build
+   ```
+4) Source workspace
+   ```bash
+   source install/setup.bash
+   ```
+
+
