@@ -2,7 +2,7 @@
 ROS2 package for Bittle Robot
 
 ## Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
--1. make sure you source your build
+1) make sure you source your build
 ```bash
 source ~/ros2_ws/install/setup.bash
 ```
