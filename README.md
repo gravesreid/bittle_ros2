@@ -1,12 +1,12 @@
 # bittle_ROS2
 ROS2 package for Bittle Robot
 
-# Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
-## make sure you source your build
+## Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
+1. make sure you source your build
 ```bash
 source ~/ros2_ws/install/setup.bash
 ```
-## make sure your domain is set
+### make sure your domain is set
 ```bash
 export ROS_DOMAIN_ID=1
 ```
