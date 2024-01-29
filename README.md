@@ -95,7 +95,7 @@ source install/setup.bash
    ```
 3) Build packages
    ```bash
-   colcon build
+   colcon build --executor sequential
    ```
 4) Source workspace
    ```bash
