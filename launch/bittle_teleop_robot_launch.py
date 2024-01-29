@@ -5,7 +5,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='bittle_driver',
-            executable='bittle_driver.py',
+            executable='bittle_driver',
             name='main_module',
             output='screen'
         )#,
