@@ -19,7 +19,7 @@
   <exec_depend>math</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>sys</exec_depend>
-  
+  <exec_depend>pyserial</exec_depend>
 
 
   <export>
