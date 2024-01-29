@@ -24,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            # Here you can add any console script entries if needed
+            'bittle_driver = bittle_ros2.bittle_driver:main',
         ],
     },
 )
