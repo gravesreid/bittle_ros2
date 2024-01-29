@@ -6,29 +6,29 @@ ROS2 package for Bittle Robot
 ```bash
 source ~/ros2_ws/install/setup.bash
 ```
-### make sure your domain is set
+2) make sure your domain is set
 ```bash
 export ROS_DOMAIN_ID=1
 ```
 
-## launch the server node
+3) launch the server node
 ```bash
 cd ~/ros2_ws/src/bittle_ros2/launch
 ros2 launch bittle_teleop_server_launch.py
 ```
 An rqt GUI should open up on your desktop
 
-## source the build on the pi
+4) source the build on the pi
 ```bash
 source ~/ros2_ws/install/setup.bash
 ```
 
-## make sure your domain is set
+5) make sure your domain is set
 ```bash
 export ROS_DOMAIN_ID=1
 ```
 
-## launch the robot node
+6) launch the robot node
 ```bash
 cd ~/ros2_ws/src/bittle_ros2/launch
 ros2 launch bittle_teleop_robot_launch.py
