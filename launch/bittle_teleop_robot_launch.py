@@ -8,19 +8,18 @@ def generate_launch_description():
             executable='bittle_driver',
             name='main_module',
             output='screen'
-        )#,
-       # Node(
-       #     package='usb_cam',
-       #     executable='usb_cam_node',
-       #     name='camera',
-       #     output='screen',
-       #     parameters=[
-       #         {'video_device': '/dev/video0'},
-       #         {'image_width': 640},
-       #         {'image_height': 480},
-       #         {'pixel_format': 'yuyv'},
-       #         {'camera_frame_id': 'camera'},
-       #         {'io_method': 'mmap'}
-       #     ]
-       # )
+        ),
+        Node(
+            package='v4l2_camera',
+            executable='v4l2_camera_node',
+            name='camera',
+            output='screen',
+            parameters=[
+                {'video_device': '/dev/video0'},
+                {'output_encoding': 'rgb8'},
+                {'pixel_format': 'yuyv'},
+                {'image_size': [640,480]},
+                {'io_method': 'mmap'}
+            ]
+        )
     ])
