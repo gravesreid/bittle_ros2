@@ -91,7 +91,8 @@ colcon build
 source install/setup.bash
 ```
 
-# set up camera library instructions from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
+# set up camera library instructions
+###from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
 1) clone packages
    ```bash
    cd ~/ros2_ws/src
