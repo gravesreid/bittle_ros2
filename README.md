@@ -58,6 +58,11 @@ ros2 run rqt_image_view rqt_image_view
 # install ros2 using docker
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
 
+## You can download the latest docker image with the setup steps already completed here:
+```bash
+docker pull gravesreid/bittle_ros_humble:latest
+```
+
 # Set up Workspace on Raspberry Pi
 ### launch docker container
 ```bash
