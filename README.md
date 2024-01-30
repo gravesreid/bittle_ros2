@@ -34,6 +34,26 @@ cd ~/ros2_ws/src/bittle_ros2/launch
 ros2 launch bittle_teleop_robot_launch.py
 ```
 
+## run camera node after initial setup
+1) Source build
+   ```bash
+   cd ~/ros2_ws
+   source install/setup.bash
+   ```
+2) Make sure domain is set (on pc and pi-same domain id for both)
+```bash
+export ROS_DOMAIN_ID=1
+```
+3) run camera node on pi
+```bash
+ros2 run v4l2_camera v4l2_camera_node
+```
+
+4) run visualization tool on desktop/pc
+```bash
+ros2 run rqt_image_view rqt_image_view
+```
+5) select image view in GUI that pops up. Choose /image_raw/compressed topic for low latency streaming
 
 # install ros2 using docker
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
@@ -71,7 +91,7 @@ colcon build
 source install/setup.bash
 ```
 
-# set up camera library
+# set up camera library instructions from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
 1) clone packages
    ```bash
    cd ~/ros2_ws/src
@@ -95,7 +115,7 @@ source install/setup.bash
    ```
 3) Build packages
    ```bash
-   colcon build --executor sequential
+   colcon build --packages-up-to v4l2_camera image_transport_plugins
    ```
 4) Source workspace
    ```bash
