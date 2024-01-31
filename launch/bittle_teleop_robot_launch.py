@@ -4,7 +4,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='bittle_driver',
+            package='bittle_ros2',
             executable='bittle_driver',
             name='main_module',
             output='screen'
