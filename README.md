@@ -13,8 +13,7 @@ export ROS_DOMAIN_ID=1
 
 3) launch the server node
 ```bash
-cd ~/ros2_ws/src/bittle_ros2/launch
-ros2 launch bittle_teleop_server_launch.py
+ros2 launch bittle_ros2 bittle_teleop_server_launch.py
 ```
 An rqt GUI should open up on your desktop
 
@@ -30,8 +29,7 @@ export ROS_DOMAIN_ID=1
 
 6) launch the robot node
 ```bash
-cd ~/ros2_ws/src/bittle_ros2/launch
-ros2 launch bittle_teleop_robot_launch.py
+ros2 launch bittle_ros2 bittle_teleop_robot_launch.py
 ```
 
 ## run camera node after initial setup
