@@ -94,7 +94,7 @@ colcon build
 source install/setup.bash
 ```
 
-# set up camera library instructions
+# set up raspberry pi camera library instructions
 from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
 1) clone packages
    ```bash
@@ -125,5 +125,15 @@ from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
    ```bash
    source install/setup.bash
    ```
+# set up intel realsense D405 camera wrapper
+1) install package
+```bash
+sudo apt install ros-humble-librealsense2*
+```
+2) source workspace
+```bash
+cd ~/ros2_ws
+source install/setup.bash
+```
 
 
