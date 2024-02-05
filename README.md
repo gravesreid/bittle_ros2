@@ -78,6 +78,7 @@ docker run -it --net=host --privileged [image_id]
 source /opt/ros/humble/setup.bash
 ```
 ## if you didn't pull the bittle_ros_humble docker image
+## this is what you need to do to set up your desktop ros2 workspace also
 ### make ros2 workspace
 ```bash
 mkdir -p ~/ros2_ws/src
