@@ -62,6 +62,10 @@ docker pull gravesreid/bittle_ros_humble:latest
 ```
 
 # Set up Workspace on Raspberry Pi
+### get docker image id
+```bash
+docker images
+```
 ### launch docker container
 ```bash
 docker run -it --net=host --device=/dev/ttyAMA0 [image_id]
@@ -70,6 +74,7 @@ docker run -it --net=host --device=/dev/ttyAMA0 [image_id]
 ```bash
 source /opt/ros/humble/setup.bash
 ```
+## if you didn't pull the bittle_ros_humble docker image
 ### make ros2 workspace
 ```bash
 mkdir -p ~/ros2_ws/src
