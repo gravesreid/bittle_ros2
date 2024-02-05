@@ -88,6 +88,11 @@ git clone https://github.com/gravesreid/bittle_ros2.git
 ```bash
 sudo apt install python3-colcon-common-extensions
 ```
+### make sure dependencies are updated and installed
+```bash
+rosdep update
+rosdep install --from-paths src -r -y
+```
 ### build the package
 ```bash
 cd ~/ros2_ws
