@@ -51,7 +51,10 @@ ros2 run v4l2_camera v4l2_camera_node
 ```bash
 ros2 run rqt_image_view rqt_image_view
 ```
-5) select image view in GUI that pops up. Choose /image_raw/compressed topic for low latency streaming
+5) select image view in GUI that pops up. Choose /image_raw/compressed topic for low latency streaming. Make sure you have compressed image transport on your desktop:
+```bash
+sudo apt-get install ros-humble-compressed-image-transport
+```
 
 # install ros2 using docker
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
