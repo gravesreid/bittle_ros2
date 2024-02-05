@@ -71,7 +71,7 @@ docker images
 ```
 ### launch docker container
 ```bash
-docker run -it --net=host --device=/dev/ttyAMA0 [image_id]
+docker run -it --net=host --privileged [image_id]
 ```
 ### source your workspace
 ```bash
