@@ -32,7 +32,12 @@ export ROS_DOMAIN_ID=1
 ros2 launch bittle_ros2 bittle_teleop_robot_launch.py
 ```
 
-## run camera node after initial setup
+## run usb camera node after initial setup
+```bash
+ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/usb_cam/config/params.yaml
+```
+
+## run raspberry pi camera node after initial setup
 1) Source build
    ```bash
    cd ~/ros2_ws
