@@ -150,4 +150,10 @@ cd ~/ros2_ws
 source install/setup.bash
 ```
 
+# USB camera setup
+To list which port the camera is attached to:
+```bash
+v4l2-ctl --list-formats-ext -d /dev/video*
+```
+
 
