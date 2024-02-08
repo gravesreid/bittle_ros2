@@ -10,14 +10,7 @@ def generate_launch_description():
             output='screen'
         ),
         Node(
-            package='topic_tools',
-            executable='relay',
-            name='camera_raw_to_plain',
-            output='screen',
-            arguments=['/camera/image_raw/compressed', '/camera/image/compressed']
-        ),
-        Node(
-            package='rqt_image_view',
-            executable='rqt_image_view'
+            package='bittle_ros2',
+            executable='object_detection_subscriber',
         )
     ])
