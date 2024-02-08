@@ -68,6 +68,23 @@ sudo apt-get install ros-humble-compressed-image-transport
 # install ros2 using docker
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
 
+### Steps to install:
+```bash
+ curl -fsSL https://get.docker.com -o get-docker.sh
+ sudo sh get-docker.sh
+```
+### so you don't need to use sudo
+```bash
+sudo usermod -aG docker $USER
+```
+```bash
+newgrp docker
+```
+Check that docker works
+```bash
+docker run hello-world
+```
+
 ## You can download the latest docker image with the setup steps already completed here:
 ```bash
 docker pull gravesreid/bittle_ros_humble:latest
