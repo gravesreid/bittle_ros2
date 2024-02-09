@@ -27,6 +27,7 @@ setup(
             'bittle_controller = bittle_ros2.bittle_driver:main',
             'video_subscriber = bittle_ros2.video_subscriber:main',
             'object_detection_subscriber = bittle_ros2.object_detection_subscriber:main',
+            'detection_cmd_publisher = bittle_ros2.detection_cmd_publisher:main',
         ],
     },
 )
