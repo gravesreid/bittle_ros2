@@ -10,7 +10,7 @@ import math
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 
-dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance'}
 
 
 class Driver(Node):

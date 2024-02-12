@@ -14,7 +14,7 @@ class ImageSubscriber(Node):
             CompressedImage,
             '/image_raw/compressed',
             self.listener_callback,
-            10)
+            1)
         self.bridge = CvBridge()
 
         # Load YOLO model
