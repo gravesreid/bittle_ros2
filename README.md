@@ -120,6 +120,7 @@ sudo apt install python3-colcon-common-extensions
 ```
 ### make sure dependencies are updated and installed
 ```bash
+cd ~/ros2_ws
 rosdep update
 rosdep install --from-paths src -r -y
 ```
