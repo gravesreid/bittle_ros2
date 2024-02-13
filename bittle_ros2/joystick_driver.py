@@ -46,17 +46,17 @@ class Driver(Node):
             dir = 3
         elif buttons[3] == 1:
             dir = 2
-        elif button[0] == 1:
+        elif buttons[0] == 1:
             dir = 4
-        elif button[1] == 1:
+        elif buttons[1] == 1:
             dir = 5
-        elif button[2] == 1:
+        elif buttons[2] == 1:
             dir = 6
-        elif button[3] == 1:
+        elif buttons[3] == 1:
             dir = 7
-        elif button[4] == 1:
+        elif buttons[4] == 1:
             dir = 8
-        elif button[5] == 1:
+        elif buttons[5] == 1:
             dir = 9
         else:
             dir = 0
