@@ -38,13 +38,13 @@ class Driver(Node):
         axes = msg.axes
         buttons = msg.buttons
         
-        if buttons[0] == 1:
+        if axes[1] == 1:
             dir = 1
-        elif buttons[2] == 1:
+        elif axes[1] == -1:
             dir = -1
-        elif buttons[1] == 1:
+        elif axes[0] == -1:
             dir = 3
-        elif buttons[3] == 1:
+        elif axes[0] == 1:
             dir = 2
         elif buttons[0] == 1:
             dir = 4
