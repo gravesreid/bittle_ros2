@@ -11,6 +11,11 @@ Before you begin, ensure you have the following installed:
 - Docker (On raspberry pi)
 
 ## Desktop/Laptop setup
+1) Install ros2 humble from instructions here:: https://docs.ros.org/en/humble/Installation.html
+2) build workspace
+```bash
+mkdir -p ~/ros2_ws/src
+```
 
 ## Raspberry pi setup
 1) Configure raspberry pi as detailed here in the readme: https://github.com/gravesreid/autonomous-bittle.git
@@ -58,8 +63,7 @@ source /opt/ros/humble/setup.bash
 cd ~/ros2_ws
 source install/setup.bash
 ```
-### if you didn't pull the bittle_ros_humble docker image
-### this is what you need to do to set up your desktop ros2 workspace also
+### if you didn't pull the bittle_ros_humble docker image, this is what you need to do to set up your desktop ros2 workspace also
 #### make ros2 workspace
 ```bash
 mkdir -p ~/ros2_ws/src
