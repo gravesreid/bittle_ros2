@@ -1,74 +1,24 @@
 # bittle_ROS2
-ROS2 package for Bittle Robot
+ROS2 package for Bittle Robot. There are launch files for Object detection based control, RQT robot controller GUI Control, and Generic USB video game controller control. All options have video streaming from Bittle to the desktop
 
-## Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
-1) make sure you source your build
-```bash
-source ~/ros2_ws/install/setup.bash
-```
-2) make sure your domain is set
-```bash
-export ROS_DOMAIN_ID=1
-```
+## Prerequisites
+Before you begin, ensure you have the following installed:
+- Petoi Bittle Robot
+- Raspberry pi (Zero 2, 4 or 5)
+- ROS2 (Tested on Humble)
+- Python 3.5 or higher
+- Git
+- Docker (On raspberry pi)
 
-3) launch the server node
-```bash
-ros2 launch bittle_ros2 bittle_teleop_server_launch.py
-```
-An rqt GUI should open up on your desktop
+## Desktop/Laptop setup
 
-4) source the build on the pi
-```bash
-source ~/ros2_ws/install/setup.bash
-```
+## Raspberry pi setup
+1) Configure raspberry pi as detailed here in the readme: https://github.com/gravesreid/autonomous-bittle.git
 
-5) make sure your domain is set
-```bash
-export ROS_DOMAIN_ID=1
-```
-
-6) launch the robot node
-```bash
-ros2 launch bittle_ros2 bittle_teleop_robot_launch.py
-```
-
-## run usb camera node after initial setup
-To list which port the camera is attached to:
-```bash
-v4l2-ctl --list-devices
-```
-```bash
-ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/usb_cam/config/params.yaml
-```
-
-## run raspberry pi camera node after initial setup
-1) Source build
-   ```bash
-   cd ~/ros2_ws
-   source install/setup.bash
-   ```
-2) Make sure domain is set (on pc and pi-same domain id for both)
-```bash
-export ROS_DOMAIN_ID=1
-```
-3) run camera node on pi
-```bash
-ros2 run v4l2_camera v4l2_camera_node
-```
-
-4) run visualization tool on desktop/pc
-```bash
-ros2 run rqt_image_view rqt_image_view
-```
-5) select image view in GUI that pops up. Choose /image_raw/compressed topic for low latency streaming. Make sure you have compressed image transport on your desktop:
-```bash
-sudo apt-get install ros-humble-compressed-image-transport
-```
-
-# install ros2 using docker
+### install ros2 using docker
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
 
-### Steps to install:
+#### Steps to install:
 ```bash
  curl -fsSL https://get.docker.com -o get-docker.sh
  sudo sh get-docker.sh
@@ -176,6 +126,72 @@ sudo apt install ros-humble-librealsense2*
 cd ~/ros2_ws
 source install/setup.bash
 ```
+
+
+## Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
+1) make sure you source your build
+```bash
+source ~/ros2_ws/install/setup.bash
+```
+2) make sure your domain is set
+```bash
+export ROS_DOMAIN_ID=1
+```
+
+3) launch the server node
+```bash
+ros2 launch bittle_ros2 bittle_teleop_server_launch.py
+```
+An rqt GUI should open up on your desktop
+
+4) source the build on the pi
+```bash
+source ~/ros2_ws/install/setup.bash
+```
+
+5) make sure your domain is set
+```bash
+export ROS_DOMAIN_ID=1
+```
+
+6) launch the robot node
+```bash
+ros2 launch bittle_ros2 bittle_teleop_robot_launch.py
+```
+
+## run usb camera node after initial setup
+To list which port the camera is attached to:
+```bash
+v4l2-ctl --list-devices
+```
+```bash
+ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/usb_cam/config/params.yaml
+```
+
+## run raspberry pi camera node after initial setup
+1) Source build
+   ```bash
+   cd ~/ros2_ws
+   source install/setup.bash
+   ```
+2) Make sure domain is set (on pc and pi-same domain id for both)
+```bash
+export ROS_DOMAIN_ID=1
+```
+3) run camera node on pi
+```bash
+ros2 run v4l2_camera v4l2_camera_node
+```
+
+4) run visualization tool on desktop/pc
+```bash
+ros2 run rqt_image_view rqt_image_view
+```
+5) select image view in GUI that pops up. Choose /image_raw/compressed topic for low latency streaming. Make sure you have compressed image transport on your desktop:
+```bash
+sudo apt-get install ros-humble-compressed-image-transport
+```
+
 
 
 
