@@ -11,10 +11,42 @@ Before you begin, ensure you have the following installed:
 - Docker (On raspberry pi)
 
 ## Desktop/Laptop setup
-1) Install ros2 humble from instructions here:: https://docs.ros.org/en/humble/Installation.html
-2) build workspace
+#### Install ros2 humble from instructions here:: https://docs.ros.org/en/humble/Installation.html
+#### build workspace
 ```bash
 mkdir -p ~/ros2_ws/src
+```
+#### clone the bittle_ros2 package
+```bash
+git clone https://github.com/gravesreid/bittle_ros2.git
+```
+#### clone bittle_msgs package
+```bash
+git clone https://github.com/gravesreid/bittle_msgs.git
+```
+#### Clone joy package
+```bash
+git clone --branch ros2 https://github.com/ros-drivers/joystick_drivers.git
+```
+#### Install colcon
+```bash
+sudo apt install python3-colcon-common-extensions
+```
+#### make sure dependencies are updated and installed
+```bash
+cd ~/ros2_ws
+rosdep update
+rosdep install --from-paths src -r -y
+```
+#### build the package
+```bash
+cd ~/ros2_ws
+colcon build
+```
+
+#### Source the environment
+```bash
+source install/setup.bash
 ```
 
 ## Raspberry pi setup
