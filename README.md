@@ -50,7 +50,7 @@ source install/setup.bash
 ```
 
 ## Raspberry pi setup
-1) Configure raspberry pi as detailed here in the readme: https://github.com/gravesreid/autonomous-bittle.git
+#### Configure raspberry pi as detailed here in the readme: https://github.com/gravesreid/autonomous-bittle.git
 
 ### install ros2 using docker taken from:
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
