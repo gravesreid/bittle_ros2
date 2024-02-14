@@ -49,9 +49,14 @@ docker images
 ```bash
 docker run -it --net=host --privileged [image_id]
 ```
-#### source your workspace
+#### source ros2
 ```bash
 source /opt/ros/humble/setup.bash
+```
+#### source your workspace
+```bash
+cd ~/ros2_ws
+source install/setup.bash
 ```
 ### if you didn't pull the bittle_ros_humble docker image
 ### this is what you need to do to set up your desktop ros2 workspace also
