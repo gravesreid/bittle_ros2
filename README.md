@@ -15,7 +15,7 @@ Before you begin, ensure you have the following installed:
 ## Raspberry pi setup
 1) Configure raspberry pi as detailed here in the readme: https://github.com/gravesreid/autonomous-bittle.git
 
-### install ros2 using docker
+### install ros2 using docker taken from:
 https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
 
 #### Steps to install:
@@ -23,7 +23,7 @@ https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
  curl -fsSL https://get.docker.com -o get-docker.sh
  sudo sh get-docker.sh
 ```
-### so you don't need to use sudo
+#### so you don't need to use sudo
 ```bash
 sudo usermod -aG docker $USER
 ```
@@ -35,57 +35,65 @@ Check that docker works
 docker run hello-world
 ```
 
-## You can download the latest docker image with the setup steps already completed here:
+#### You can download the latest docker image with the setup steps already completed here:
 ```bash
 docker pull gravesreid/bittle_ros_humble:latest
 ```
 
-# Set up Workspace on Raspberry Pi
-### get docker image id
+### Set up Workspace on Raspberry Pi
+#### get docker image id
 ```bash
 docker images
 ```
-### launch docker container
+#### launch docker container
 ```bash
 docker run -it --net=host --privileged [image_id]
 ```
-### source your workspace
+#### source your workspace
 ```bash
 source /opt/ros/humble/setup.bash
 ```
-## if you didn't pull the bittle_ros_humble docker image
-## this is what you need to do to set up your desktop ros2 workspace also
-### make ros2 workspace
+### if you didn't pull the bittle_ros_humble docker image
+### this is what you need to do to set up your desktop ros2 workspace also
+#### make ros2 workspace
 ```bash
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 ```
-### clone the bittle_ros2 package
+#### clone the bittle_ros2 package
 ```bash
 git clone https://github.com/gravesreid/bittle_ros2.git
 ```
-### Install colcon
+#### clone bittle_msgs package
+```bash
+git clone https://github.com/gravesreid/bittle_msgs.git
+```
+#### Clone joy package
+```bash
+git clone --branch ros2 https://github.com/ros-drivers/joystick_drivers.git
+```
+#### Install colcon
 ```bash
 sudo apt install python3-colcon-common-extensions
 ```
-### make sure dependencies are updated and installed
+#### make sure dependencies are updated and installed
 ```bash
 cd ~/ros2_ws
 rosdep update
 rosdep install --from-paths src -r -y
 ```
-### build the package
+#### build the package
 ```bash
 cd ~/ros2_ws
 colcon build
 ```
 
-### Source the environment
+#### Source the environment
 ```bash
 source install/setup.bash
 ```
 
-# set up raspberry pi camera library instructions
+### set up raspberry pi camera library instructions
 from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
 1) clone packages
    ```bash
@@ -116,7 +124,7 @@ from: https://medium.com/swlh/raspberry-pi-ros-2-camera-eef8f8b94304
    ```bash
    source install/setup.bash
    ```
-# set up intel realsense D405 camera wrapper
+### If using realsense camera: set up intel realsense D405 camera wrapper
 1) install package
 ```bash
 sudo apt install ros-humble-librealsense2*
@@ -128,7 +136,7 @@ source install/setup.bash
 ```
 
 
-## Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
+### Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
 1) make sure you source your build
 ```bash
 source ~/ros2_ws/install/setup.bash
@@ -159,7 +167,7 @@ export ROS_DOMAIN_ID=1
 ros2 launch bittle_ros2 bittle_teleop_robot_launch.py
 ```
 
-## run usb camera node after initial setup
+### run usb camera node after initial setup
 To list which port the camera is attached to:
 ```bash
 v4l2-ctl --list-devices
@@ -168,7 +176,7 @@ v4l2-ctl --list-devices
 ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/usb_cam/config/params.yaml
 ```
 
-## run raspberry pi camera node after initial setup
+### run raspberry pi camera node after initial setup
 1) Source build
    ```bash
    cd ~/ros2_ws
