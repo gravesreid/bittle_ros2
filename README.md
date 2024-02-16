@@ -177,6 +177,31 @@ source install/setup.bash
 ```
 
 
+### Run Bittle controller with USB gamepad control
+
+#### You may need to do some remapping of buttons. To determine your button mapping, plug your controller into your PC and run:
+```bash
+ros2 run joy joy_node
+```
+
+#### In another terminal:
+```bash
+ros2 topic echo /joy
+```
+
+#### If the mapping isn't correct, match up the dictionary and controller outputs in joystick_driver.py
+
+#### Now you are ready to launch the controllers. On Bittle raspberry pi:
+```bash
+ros2 launch bittle_ros2 robot_joystic_launch.py
+```
+
+#### on your PC:
+```bash
+ros2 launch bittle_ros2 server_joystick_launch.py
+```
+
+
 ### Run bittle controller after you have configured both the Raspberry Pi and Desktop for ROS2
 1) make sure you source your build
 ```bash
