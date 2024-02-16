@@ -11,6 +11,6 @@ def generate_launch_description():
         ),
         Node(
             package='bittle_ros2',
-            executable='video_subscriber',
+            executable='image_save_subscriber',
         )
     ])
