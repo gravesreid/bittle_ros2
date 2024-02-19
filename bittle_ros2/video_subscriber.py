@@ -11,7 +11,7 @@ from rclpy.executors import MultiThreadedExecutor
 # define a class for displaying the video feed
 
 class ImageDisplay:
-    def __init__(self, max_queue_size=5):
+    def __init__(self, max_queue_size=2):
         self.frame_queue = queue.Queue(maxsize=max_queue_size)
         self.display_thread = threading.Thread(target=self.run_display)
         self.display_thread.daemon = True
@@ -21,7 +21,7 @@ class ImageDisplay:
         while True:
             try:
                 # Wait for the next frame with a timeout to allow checking for exit conditions
-                frame = self.frame_queue.get(timeout=0.1)
+                frame = self.frame_queue.get(timeout=0.01)
                 cv2.imshow("camera", frame)
                 if cv2.waitKey(1) == ord('q'):
                     break
