@@ -19,7 +19,8 @@ def generate_launch_description():
                 {'output_encoding': 'rgb8'},
                 {'pixel_format': 'YUYV'},
                 {'image_size': [640,480]},
-                {'io_method': 'mmap'}
+                {'io_method': 'mmap'},
+                {'image_raw.jpeg_quality' : 25}
             ]
         )
     ])
