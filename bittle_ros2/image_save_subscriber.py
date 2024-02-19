@@ -1,62 +1,54 @@
-import rclpy  # Python library for ROS 2
-from rclpy.node import Node  # Handles the creation of nodes
-from sensor_msgs.msg import CompressedImage  # Correct message type for compressed images
-from cv_bridge import CvBridge  # Package to convert between ROS and OpenCV Images
-import cv2  # OpenCV library
-from rclpy.executors import MultiThreadedExecutor
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import CompressedImage
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 import os
-import threading
+import time
 
 class ImageSubscriber(Node):
     def __init__(self):
         super().__init__('image_subscriber')
-        #make a counter to save every 5th frame
-        self.frame_counter = 0
-        self.base_directory = "/home/reid/Downloads"
-        os.makedirs(self.base_directory, exist_ok=True)
-        # Create the subscriber. This subscriber will receive a CompressedImage
-        self.subscription = self.create_subscription(
-            CompressedImage, 
-            '/image_raw/compressed', 
-            self.listener_callback, 
-            1)
-        self.subscription  # prevent unused variable warning
-        
-        # Used to convert between ROS and OpenCV images
         self.bridge = CvBridge()
-    
-    def listener_callback(self, data):
-        """
-        Callback function.
-        """
-        # Display the message on the console
-        self.get_logger().info('Receiving video frame')
-    
-        # Convert ROS CompressedImage message to OpenCV image
-        current_frame = self.bridge.compressed_imgmsg_to_cv2(data, desired_encoding='bgr8')
-        
-        
-        # Display image
-        cv2.imshow("camera", current_frame)
-        
-        # save every 5th frame
-        if self.frame_counter % 5 == 0:
-            filename = os.path.join(self.base_directory, f'frame_{self.frame_counter}.jpg')
-            #threading.Thread(target=self.save_image, args=(current_frame, filename)).start()
-        self.frame_counter += 1
-        
-        cv2.waitKey(1)
-    def save_image(self, frame, filename):
-        cv2.imwrite(filename, frame)
-        self.get_logger().info(f'Image saved to {filename}')
+        # Define the base directory to save images. Adjust as per your system's path.
+        self.base_directory = os.path.join(os.path.expanduser('~'), 'Downloads')
+        os.makedirs(self.base_directory, exist_ok=True)  # Ensure the directory exists
+
+        self.subscription = self.create_subscription(
+            CompressedImage,
+            '/image_raw/compressed',
+            self.image_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+
+    def image_callback(self, msg):
+        self.get_logger().info('Received an image!')
+        try:
+            # Correctly convert your ROS CompressedImage message to OpenCV2
+            cv2_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        except CvBridgeError as e:
+            self.get_logger().error(str(e))
+        else:
+            # Save your OpenCV2 image as a jpeg in the Downloads folder
+            timestamp = time.strftime('%Y%m%d_%H%M%S')
+            image_path = os.path.join(self.base_directory, f'camera_image_{timestamp}.jpeg')
+            cv2.imwrite(image_path, cv2_img)
+            self.get_logger().info(f'Image saved to {image_path}')
+            
+            # Display the image stream
+            cv2.imshow("Camera Image", cv2_img)
+            cv2.waitKey(1) 
 
 def main(args=None):
     rclpy.init(args=args)
     image_subscriber = ImageSubscriber()
-    executor = MultiThreadedExecutor()
-    rclpy.spin(image_subscriber, executor=executor)
+    rclpy.spin(image_subscriber)
+    # Destroy the node explicitly
     image_subscriber.destroy_node()
+    cv2.destroyAllWindows()  # Make sure to close OpenCV windows
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
+
+
