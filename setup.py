@@ -30,6 +30,7 @@ setup(
             'joystick_driver = bittle_ros2.joystick_driver:main',
             'object_detection_driver = bittle_ros2.object_detection_driver:main',
             'image_save_subscriber = bittle_ros2.image_save_subscriber:main',
+            'latency_test = bittle_ros2.latency_test:main',
         ],
     },
 )
