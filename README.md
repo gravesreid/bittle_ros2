@@ -15,6 +15,7 @@ Before you begin, ensure you have the following installed:
 #### build workspace
 ```bash
 mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
 ```
 #### clone the bittle_ros2 package
 ```bash
