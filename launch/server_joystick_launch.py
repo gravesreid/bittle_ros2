@@ -8,9 +8,11 @@ def generate_launch_description():
             executable='joy_node',
             name='joy_node',
             output='screen'
-        ),
+        )
         Node(
             package='bittle_ros2',
             executable='video_subscriber',
+            name='video_subscriber',
+            output='screen'
         )
     ])
