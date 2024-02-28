@@ -30,20 +30,20 @@ class ImageDisplay:
                 continue
 
     def update_frame(self, frame):
-        if not self.frame_queue.full():
-            # If the queue is not full, add the new frame
+        while not self.frame_queue.empty():
+            # Discard all older frames to ensure the queue only has the most recent frame
             try:
-                self.frame_queue.put(frame, block=False)
-            except queue.Full:
-                pass  # If the queue becomes full between the check and the put, ignore this frame
-        else:
-            # If the queue is full, discard the oldest frame and add the new one
-            try:
-                self.frame_queue.get(block=False)  # Discard the oldest frame
-                self.frame_queue.put(frame, block=False)  # Add the new frame
+                self.frame_queue.get(block=False)
             except queue.Empty:
-                # If the queue emptied since checking, this exception will catch it
-                pass
+                break  # The queue is already empty
+
+        # Now that the queue is empty or has been emptied, add the new frame
+        try:
+            self.frame_queue.put(frame, block=False)
+        except queue.Full:
+            # This case should not happen since we just emptied the queue,
+            # but it's good practice to handle it
+            pass
 
 class ImageSubscriber(Node):
     def __init__(self):
