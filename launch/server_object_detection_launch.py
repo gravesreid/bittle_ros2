@@ -7,5 +7,10 @@ def generate_launch_description():
             package='bittle_ros2',
             executable='object_detection_subscriber',
             output='screen'
+        ),
+        Node(
+            package='joy',
+            executable='joy_node',
+            output='screen'
         )
         ])
