@@ -33,6 +33,10 @@ git clone --branch ros2 https://github.com/ros-drivers/joystick_drivers.git
 ```bash
 sudo apt install python3-colcon-common-extensions
 ```
+#### Install diagnostic-updater
+```bash
+sudo apt-get install ros-humble-diagnostic-updater
+```
 #### make sure dependencies are updated and installed
 ```bash
 cd ~/ros2_ws
