@@ -18,7 +18,7 @@ class ImageSubscriber(Node):
         self.bridge = CvBridge()
 
         # Load YOLO model
-        self.model = YOLO('/home/reid/autonomous-bittle/vision-based-command/huddle_room_environment/best.pt')  # Update the path to your model
+        self.model = YOLO('/home/reid/yolo/black_and_white_pheromones-1/best.pt')  # Update the path to your model
         self.model.conf = 0.5  # Set confidence threshold
         
         # Create detection publisher

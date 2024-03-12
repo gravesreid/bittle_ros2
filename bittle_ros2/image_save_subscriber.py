@@ -10,15 +10,11 @@ class Save_Image(Node):
     def __init__(self):
         super().__init__('image_subscriber')
         self.bridge = CvBridge()
-        self.base_directory_p = r'/home/reid/data_collection/acorn'
-        self.base_directory_n = r'/home/reid/data_collection/white_pheromone'
+        self.base_directory_p = r'/home/reid/data_collection/green_pheromones'
         os.makedirs(self.base_directory_p, exist_ok=True)  # Ensure the directories exist
-        os.makedirs(self.base_directory_n, exist_ok=True)
         self.frame_counter_p = 0
-        self.frame_counter_n = 0
         # self.prev_button_state = [0, 0]  # Initialize previous button state
         self.flag_8 = 0
-        self.flag_9 = 0
 
         self.display_window_name = "Camera Image"
         cv2.namedWindow(self.display_window_name, cv2.WINDOW_NORMAL)
@@ -56,18 +52,10 @@ class Save_Image(Node):
                 image_path = os.path.join(base_directory, frame_name)
                 cv2.imwrite(image_path, self.cv2_img)
                 self.flag_8 = 1
-            elif buttons[9] == 1 and self.flag_9 == 0:
-                base_directory = self.base_directory_n
-                frame_name = self.get_next_filename(base_directory, 'frame_', 'jpeg')
-                image_path = os.path.join(base_directory, frame_name)
-                cv2.imwrite(image_path, self.cv2_img)
-                self.flag_9 = 1
             
             if buttons[8] == 0:
                 self.flag_8 = 0
 
-            if buttons[9] == 0:
-                self.flag_9 = 0
             
         except CvBridgeError as e:
             self.get_logger().error(str(e))
