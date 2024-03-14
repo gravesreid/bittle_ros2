@@ -20,7 +20,7 @@ def generate_launch_description():
                 {'pixel_format': 'YUYV'},
                 {'image_size': [640,480]},
                 {'io_method': 'mmap'},
-                {'image_raw.jpeg_quality' : 25}
+                {'image_raw.jpeg_quality' : 5}
             ]
         )
     ])

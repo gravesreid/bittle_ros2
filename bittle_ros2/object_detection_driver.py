@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance'}
+dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kwkL', 3: 'kwkR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF'}
 
 
 class Driver(Node):
@@ -19,6 +19,7 @@ class Driver(Node):
     def __init__(self, port='/dev/ttyAMA0'):
         super().__init__('cmd_vel_listener')
         self.dir = 0
+        self.num_commands_sent = 0
         self.subscription = self.create_subscription(
             Detection,
             '/detection_topic',
@@ -47,12 +48,15 @@ class Driver(Node):
                 dir = 2
             else:
                 dir = 1
+        elif self.num_commands_sent % 5 == 0:
+            dir = 5
         else:
             dir = 0
 
         if self.dir != dir:
             self.wrapper([dir_dict[dir], 0])
             self.dir = dir
+            self.num_commands_sent += 1
 
     def wrapper(self, task):  # Structure is [token, var=[], time]
         print(task)
