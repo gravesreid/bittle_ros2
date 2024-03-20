@@ -32,6 +32,8 @@ setup(
             'image_save_subscriber = bittle_ros2.image_save_subscriber:main',
             'latency_test = bittle_ros2.latency_test:main',
             'pi_servo_driver = bittle_ros2.pi_servo_driver:main',
+            'experiment_driver = bittle_ros2.experiment_driver:main',
+            'experiment_subscriber = bittle_ros2.experiment_subscriber:main',
         ],
     },
 )
