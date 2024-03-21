@@ -34,6 +34,7 @@ setup(
             'pi_servo_driver = bittle_ros2.pi_servo_driver:main',
             'experiment_driver = bittle_ros2.experiment_driver:main',
             'experiment_subscriber = bittle_ros2.experiment_subscriber:main',
+            'demo_driver = bittle_ros2.demo_driver:main',
         ],
     },
 )

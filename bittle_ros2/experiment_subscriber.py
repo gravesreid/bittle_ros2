@@ -30,7 +30,7 @@ class BittlePlannerSubscriber(Node):
             self.listener_callback,
             1)
         self.bridge = CvBridge()
-        self.model = YOLO('/home/rithwik/bittle/autonomous-bittle/vision-based-command/best.pt')
+        self.model = YOLO('/home/reid/yolo/black_and_white_pheromones-1/best.pt')
 
 
         self.detection_publisher = DetectionPublisher()
