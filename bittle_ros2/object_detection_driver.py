@@ -40,16 +40,19 @@ class Driver(Node):
 
         results = msg.results
         xywhn_list = msg.xywhn_list
+
+        print("Results: ", results)
+        print("xywhn_list: ", xywhn_list)
         
         if len(results) > 0:
             if xywhn_list[0] > 0.75:
-                dir = 3
+                dir = 0
             elif xywhn_list[0] < 0.25:
-                dir = 2
+                dir = 0
             else:
-                dir = 1
+                dir = 0
         elif self.num_commands_sent % 5 == 0:
-            dir = 5
+            dir = 0
         else:
             dir = 0
 

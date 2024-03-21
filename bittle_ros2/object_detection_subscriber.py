@@ -53,6 +53,7 @@ class DetectionPublisher(Node):
     def publish_detection_info(self, detection):
         msg = Detection()
         msg.results = [int(result) for result in detection[0]['results']]
+        print('results:', msg.results)
         # Initialize an empty list to hold the flattened and converted values
         flattened_xywhn_list = []
 
@@ -70,6 +71,7 @@ class DetectionPublisher(Node):
 
         # Assign the flattened list of floats to 'msg.xywhn_list'
         msg.xywhn_list = flattened_xywhn_list
+        print('xywhn_list:', msg.xywhn_list)
         self.publisher.publish(msg)
         self.get_logger().info('Publishing detection')
 
