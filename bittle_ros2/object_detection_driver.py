@@ -20,6 +20,8 @@ class Driver(Node):
         super().__init__('cmd_vel_listener')
         self.dir = 0
         self.num_commands_sent = 0
+        self.last_command_time = 0
+        self.command_interval = 0.5
         self.subscription = self.create_subscription(
             Detection,
             '/detection_topic',
@@ -67,21 +69,21 @@ class Driver(Node):
         self.command_logic()
 
     def command_logic(self):     
-        if len(self.acorn_list) > 0:
-            if self.acorn_list[-1][0] > 0.75:
-                print("turning right")
-                dir = 3
-            elif self.acorn_list[-1][0] < 0.25:
-                print("turning left")
-                dir = 2
+        current_time = time.time()
+        if (current_time - self.last_command_time) >= self.command_interval:
+            if len(self.acorn_list) > 0:
+                if self.acorn_list[-1][0] > 0.75:
+                    print("turning right")
+                    dir = 3
+                elif self.acorn_list[-1][0] < 0.25:
+                    print("turning left")
+                    dir = 2
+                else:
+                    print("going straight")
+                    dir = 1
             else:
-                print("going straight")
-                dir = 1
-        elif self.num_commands_sent % 5 == 0:
-            dir = 0
-        else:
-            print("no detections")
-            dir = 7
+                print("no detections")
+                dir = 7
 
         if self.dir != dir:
             self.wrapper([dir_dict[dir], 0])
