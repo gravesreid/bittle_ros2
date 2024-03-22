@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kwkL', 3: 'kwkR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF'}
+dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kwkL', 3: 'kwkR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtL'}
 
 
 class Driver(Node):
@@ -34,46 +34,57 @@ class Driver(Node):
             bytesize=serial.EIGHTBITS,
             timeout=1
         )
+        # make lists to store detection info
+        self.acorn_list = []
+        self.black_pheromone_list = []
+        self.white_pheromone_list = []
+        # make flags to keep track of the state of the mission
+        self.mission_complete = False
+        self.found_acorn = False
+        self.collecting = False
+        self.searching = False
+        self.collected = False
 
-    def callback(self, msg):
+    def callback(self, msg): # for processing the detection messages
         self.get_logger().info("Received a /detection_topic message!")
 
-        results = msg.results # returns an array with numeric labels for the objects 0: acorn 1: black pheromone 2: white pheromone
-        xywhn_list = msg.xywhn_list #returns an array with the x, y, width, height, of each detection, ordered by the from the top of the frame to the bottom
-        acorn_list = []
-        black_pheromone_list = []
-        white_pheromone_list = []
-        for i in range(len(results)):
+        results = list(msg.results) # returns a list with numeric labels for the objects 0: acorn 1: black pheromone 2: white pheromone
+        xywhn_list = list(msg.xywhn_list) #returns a list with the x, y, width, height, of each detection, ordered by the from the top of the frame to the bottom
+        for i in range(len(results)): # for each detection, append the xywhn_list to the appropriate list
             if results[i] == 0:
-                acorn_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.acorn_list.append([xywhn_list[(i*4):(4*(i+1))]])
             elif results[i] == 1:
-                black_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.black_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
             elif results[i] == 2:
-                white_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.white_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
 
 
-        print("Results: ", results)
-        print("xywhn_list: ", xywhn_list)
-        print("Acorn List: ", acorn_list)
-        print("Black Pheromone List: ", black_pheromone_list)
-        print("White Pheromone List: ", white_pheromone_list)
-        
-        if len(results) > 0:
-            if xywhn_list[0] > 0.75:
-                dir = 0
-            elif xywhn_list[0] < 0.25:
-                dir = 0
+        print("Acorn List: ", self.acorn_list)
+        print("Black Pheromone List: ", self.black_pheromone_list)
+        print("White Pheromone List: ", self.white_pheromone_list)
+
+    def command_logic(self):     
+        if len(self.acorn_list) > 0:
+            if self.acorn_list[-1][0] > 0.75:
+                print("turning right")
+                dir = 3
+            elif self.acorn_list[-1][0] < 0.25:
+                print("turning left")
+                dir = 2
             else:
-                dir = 0
+                print("going straight")
+                dir = 1
         elif self.num_commands_sent % 5 == 0:
             dir = 0
         else:
-            dir = 0
+            print("no detections")
+            dir = 7
 
         if self.dir != dir:
             self.wrapper([dir_dict[dir], 0])
             self.dir = dir
             self.num_commands_sent += 1
+
 
     def wrapper(self, task):  # Structure is [token, var=[], time]
         print(task)
