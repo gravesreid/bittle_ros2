@@ -85,10 +85,11 @@ class Driver(Node):
                 print("no detections")
                 dir = 7
 
-        if self.dir != dir:
-            self.wrapper([dir_dict[dir], 0])
-            self.dir = dir
-            self.num_commands_sent += 1
+            if self.dir != dir:
+                self.wrapper([dir_dict[dir], 0])
+                self.dir = dir
+                self.num_commands_sent += 1
+                self.last_command_time = current_time
 
 
     def wrapper(self, task):  # Structure is [token, var=[], time]
