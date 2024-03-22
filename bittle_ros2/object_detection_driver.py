@@ -34,10 +34,7 @@ class Driver(Node):
             bytesize=serial.EIGHTBITS,
             timeout=1
         )
-        # make lists to store detection info
-        self.acorn_list = []
-        self.black_pheromone_list = []
-        self.white_pheromone_list = []
+
         # make flags to keep track of the state of the mission
         self.mission_complete = False
         self.found_acorn = False
@@ -50,6 +47,10 @@ class Driver(Node):
 
         results = list(msg.results) # returns a list with numeric labels for the objects 0: acorn 1: black pheromone 2: white pheromone
         xywhn_list = list(msg.xywhn_list) #returns a list with the x, y, width, height, of each detection, ordered by the from the top of the frame to the bottom
+        # make lists to store detection info
+        self.acorn_list = []
+        self.black_pheromone_list = []
+        self.white_pheromone_list = []
         for i in range(len(results)): # for each detection, append the xywhn_list to the appropriate list
             if results[i] == 0:
                 self.acorn_list.append([xywhn_list[(i*4):(4*(i+1))]])
@@ -62,6 +63,8 @@ class Driver(Node):
         print("Acorn List: ", self.acorn_list)
         print("Black Pheromone List: ", self.black_pheromone_list)
         print("White Pheromone List: ", self.white_pheromone_list)
+
+        self.command_logic()
 
     def command_logic(self):     
         if len(self.acorn_list) > 0:
