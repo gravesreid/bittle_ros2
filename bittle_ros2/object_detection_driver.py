@@ -53,11 +53,11 @@ class Driver(Node):
         self.white_pheromone_list = []
         for i in range(len(results)): # for each detection, append the xywhn_list to the appropriate list
             if results[i] == 0:
-                self.acorn_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.acorn_list.append(xywhn_list[(i*4):(4*(i+1))])
             elif results[i] == 1:
-                self.black_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.black_pheromone_list.append(xywhn_list[(i*4):(4*(i+1))])
             elif results[i] == 2:
-                self.white_pheromone_list.append([xywhn_list[(i*4):(4*(i+1))]])
+                self.white_pheromone_list.append(xywhn_list[(i*4):(4*(i+1))])
 
 
         print("Acorn List: ", self.acorn_list)
