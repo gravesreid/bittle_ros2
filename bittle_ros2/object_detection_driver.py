@@ -38,11 +38,25 @@ class Driver(Node):
     def callback(self, msg):
         self.get_logger().info("Received a /detection_topic message!")
 
-        results = msg.results
-        xywhn_list = msg.xywhn_list
+        results = msg.results # returns an array with numeric labels for the objects 0: acorn 1: black pheromone 2: white pheromone
+        xywhn_list = msg.xywhn_list #returns an array with the x, y, width, height, of each detection, ordered by the from the top of the frame to the bottom
+        acorn_list = []
+        black_pheromone_list = []
+        white_pheromone_list = []
+        for i in range(len(results)):
+            if results[i] == 0:
+                acorn_list.append([xywhn_list[(i*4):(4(i+1))]])
+            elif results[i] == 1:
+                black_pheromone_list.append([xywhn_list[(i*4):(4(i+1))]])
+            elif results[i] == 2:
+                white_pheromone_list.append([xywhn_list[(i*4):(4(i+1))]])
+
 
         print("Results: ", results)
         print("xywhn_list: ", xywhn_list)
+        print("Acorn List: ", acorn_list)
+        print("Black Pheromone List: ", black_pheromone_list)
+        print("White Pheromone List: ", white_pheromone_list)
         
         if len(results) > 0:
             if xywhn_list[0] > 0.75:
