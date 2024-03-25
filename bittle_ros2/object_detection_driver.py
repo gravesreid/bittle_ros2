@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtL'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtR'}
 
 
 class Driver(Node):
@@ -21,7 +21,7 @@ class Driver(Node):
         self.dir = 0
         self.num_commands_sent = 0
         self.last_command_time = 0
-        self.command_interval = 0.5
+        self.command_interval = 1.5
         self.subscription = self.create_subscription(
             Detection,
             '/detection_topic',
