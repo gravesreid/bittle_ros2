@@ -35,6 +35,7 @@ setup(
             'experiment_driver = bittle_ros2.experiment_driver:main',
             'experiment_subscriber = bittle_ros2.experiment_subscriber:main',
             'demo_driver = bittle_ros2.demo_driver:main',
+            'robot_object_detection_subscriber = bittle_ros2.robot_object_detection_subscriber:main',
         ],
     },
 )
