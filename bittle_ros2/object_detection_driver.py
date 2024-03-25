@@ -133,12 +133,11 @@ class Driver(Node):
                 else:
                     dir = 7
 
-        if self.num_commands_sent % 2 == 0:
-            if self.dir != dir:
-                self.wrapper([dir_dict[dir], 0])
-                self.dir = dir
-                self.num_commands_sent += 1
-                self.last_command_time = current_time
+        if self.dir != dir:
+            self.wrapper([dir_dict[dir], 0])
+            self.dir = dir
+            self.num_commands_sent += 1
+            self.last_command_time = current_time
     
     def drop_pheromone(self):
         if self.found_acorn:
