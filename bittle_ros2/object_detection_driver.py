@@ -70,6 +70,7 @@ class Driver(Node):
 
     def command_logic(self):     
         current_time = time.time()
+        print("current time: ", current_time)
         if (current_time - self.last_command_time) >= self.command_interval:
             if len(self.acorn_list) > 0:
                 if self.acorn_list[-1][0] > 0.75:
