@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF', 9: 'kturn'}
 
 
 class Driver(Node):
@@ -41,7 +41,7 @@ class Driver(Node):
         self.mission_complete = False
         self.found_acorn = False
         self.collecting = False
-        self.searching = False
+        self.searching = True
         self.collected = False
 
         # keep track of how many pheromones have been dropped
@@ -105,7 +105,7 @@ class Driver(Node):
                 else:
                     print("going straight")
                     dir = 1
-            if len(self.white_pheromone_list) > 0:
+            elif len(self.white_pheromone_list) > 0 and len(self.black_pheromone_list) == 0:
                 print("found white pheromone")
                 if self.white_pheromone_list[-1][0] > 0.75:
                     print("turning right")
@@ -118,7 +118,9 @@ class Driver(Node):
                     dir = 1
             else:
                 print("no detections")
-                dir = 3
+                dir = 9
+        else:
+            dir = 0
         
         if time_since_last_command >= 5:  # drop pheromones every 5 seconds
             if self.found_acorn:
