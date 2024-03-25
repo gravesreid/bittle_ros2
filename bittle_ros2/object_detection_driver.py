@@ -26,7 +26,7 @@ class Driver(Node):
             Detection,
             '/detection_topic',
             self.callback,
-            10)
+            1)
         self.subscription  # prevent unused variable warning
         self.ser = serial.Serial(
             port=port,
@@ -121,9 +121,19 @@ class Driver(Node):
             else:
                 print("no detections")
                 dir = 3
-        if self.num_commands_sent % 2 == 0:
-            self.drop_pheromone()
+        if time_since_last_command >= 5:  # drop pheromones every 5 seconds
+            if self.found_acorn:
+                if self.black_pheromones_dropped <= 9:
+                    dir = 4
+                else:
+                    dir = 5
+            elif self.searching:
+                if self.white_pheromones_dropped <= 9:
+                    dir = 6
+                else:
+                    dir = 7
 
+        if self.num_commands_sent % 2 == 0:
             if self.dir != dir:
                 self.wrapper([dir_dict[dir], 0])
                 self.dir = dir
