@@ -121,6 +121,8 @@ class Driver(Node):
             else:
                 print("no detections")
                 dir = 3
+        else:
+            dir = 0
         if time_since_last_command >= 5:  # drop pheromones every 5 seconds
             if self.found_acorn:
                 if self.black_pheromones_dropped <= 9:
