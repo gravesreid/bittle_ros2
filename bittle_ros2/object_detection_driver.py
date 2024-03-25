@@ -89,12 +89,12 @@ class Driver(Node):
                 elif self.acorn_list[-1][0] < 0.25:
                     print("turning left")
                     dir = 2
+                elif self.acorn_list[-1][1] > 0.85:
+                    print("collecting acorn")
+                    dir = 8
                 else:
                     print("going straight")
                     dir = 1
-            elif self.acorn_list[-1][1] > 0.85:
-                print("collecting acorn")
-                dir = 8
             elif self.searching:
                 if len(self.black_pheromone_list) > 0:
                     print("found black pheromone")
