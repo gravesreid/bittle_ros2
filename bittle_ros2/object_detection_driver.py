@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtR'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF'}
 
 
 class Driver(Node):
@@ -21,7 +21,7 @@ class Driver(Node):
         self.dir = 0
         self.num_commands_sent = 0
         self.last_command_time = 0
-        self.command_interval = 1.5
+        self.command_interval = 1
         self.subscription = self.create_subscription(
             Detection,
             '/detection_topic',
@@ -43,6 +43,10 @@ class Driver(Node):
         self.collecting = False
         self.searching = False
         self.collected = False
+
+        # keep track of how many pheromones have been dropped
+        self.black_pheromones_dropped = 0
+        self.white_pheromones_dropped = 0
 
     def callback(self, msg): # for processing the detection messages
         self.get_logger().info("Received a /detection_topic message!")
@@ -74,6 +78,11 @@ class Driver(Node):
         print("Time since last command: ", time_since_last_command)
         if time_since_last_command >= self.command_interval:
             if len(self.acorn_list) > 0:
+                if self.found_acorn == False:
+                    self.found_acorn = True
+                    self.searching = False
+                    self.collecting = True
+                    print("found acorn")
                 if self.acorn_list[-1][0] > 0.75:
                     print("turning right")
                     dir = 3
@@ -83,15 +92,56 @@ class Driver(Node):
                 else:
                     print("going straight")
                     dir = 1
+            elif self.acorn_list[-1][1] > 0.85:
+                print("collecting acorn")
+                dir = 8
+            elif self.searching:
+                if len(self.black_pheromone_list) > 0:
+                    print("found black pheromone")
+                    if self.black_pheromone_list[-1][0] > 0.75:
+                        print("turning right")
+                        dir = 3
+                    elif self.black_pheromone_list[-1][0] < 0.25:
+                        print("turning left")
+                        dir = 2
+                    else:
+                        print("going straight")
+                        dir = 1
+                if len(self.white_pheromone_list) > 0:
+                    print("found white pheromone")
+                    if self.white_pheromone_list[-1][0] > 0.75:
+                        print("turning right")
+                        dir = 3
+                    elif self.white_pheromone_list[-1][0] < 0.25:
+                        print("turning left")
+                        dir = 2
+                    else:
+                        print("going straight")
+                        dir = 1
             else:
                 print("no detections")
-                dir = 7
+                dir = 3
+        if self.num_commands_sent % 2 == 0:
+            self.drop_pheromone()
 
             if self.dir != dir:
                 self.wrapper([dir_dict[dir], 0])
                 self.dir = dir
                 self.num_commands_sent += 1
                 self.last_command_time = current_time
+    
+    def drop_pheromone(self):
+        if self.found_acorn:
+            if self.black_pheromones_dropped <= 9:
+                dir = 4
+            else:
+                dir = 5
+        elif self.searching:
+            if self.white_pheromones_dropped <= 9:
+                dir = 6
+            else:
+                dir = 7
+
 
 
     def wrapper(self, task):  # Structure is [token, var=[], time]
