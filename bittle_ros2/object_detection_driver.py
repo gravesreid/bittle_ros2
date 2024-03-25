@@ -11,7 +11,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 
-dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kwkL', 3: 'kwkR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtL'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone', 5: 'kthree', 6: 'kcollectF', 7: 'kvtL'}
 
 
 class Driver(Node):
