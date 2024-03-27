@@ -33,7 +33,7 @@ class SerialSender(Node):
         except Exception as e:
             self.get_logger().error('Service call failed %r' % (e,))
         else:
-            command_to_send = response.command
+            command_to_send = response.next_command
             if command_to_send == '':  # Assuming an empty string indicates no command
                 if self.last_command != 'krest':
                     command_to_send = 'krest'

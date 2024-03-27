@@ -43,7 +43,7 @@ class Driver(Node):
         # Decide the next command based on current state
         if self.current_state is not None:
             command = self.decide_command(self.current_state)
-            response.command = command
+            response.next_command = command
         else:
             response.command = 'No command'  # Default or idle command
         return response
