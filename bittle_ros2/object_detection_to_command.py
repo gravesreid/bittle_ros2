@@ -40,16 +40,30 @@ class Driver(Node):
         self.current_state = self.analyze_detections(msg)
         command = self.decide_command(self.current_state)
         self.publish_command(command)
-        self.publish_state(self.current_state)
+        self.publish_state()
 
     def publish_command(self, command):
         msg = Command()
         msg.cmd = command
         self.command_publisher.publish(msg)
 
-    def publish_state(self, state):
-        msg = self.current_state
-        self.state_publisher.publish(msg)
+def publish_state(self):
+    msg = State()
+    msg.found_acorn = self.current_state['found_acorn']
+    msg.found_black_pheromone = self.current_state['found_black_pheromone']
+    msg.found_white_pheromone = self.current_state['found_white_pheromone']
+    msg.searching = self.current_state['searching']
+    msg.collecting = self.current_state['collecting']
+    msg.collected = self.current_state['collected']
+    msg.black_pheromones_dropped = self.current_state['black_pheromones_dropped']
+    msg.white_pheromones_dropped = self.current_state['white_pheromones_dropped']
+    msg.returning = self.current_state['returning']
+    msg.mission_complete = self.current_state['mission_complete']
+    if self.current_state['last_command_sent'] is not None:
+        msg.last_command_sent = self.current_state['last_command_sent']
+    else:
+        msg.last_command_sent = 'None'
+    self.state_publisher.publish(msg)    
 
     def analyze_detections(self, detection_msg):
         # Analyze detection messages and update state
