@@ -37,7 +37,7 @@ class SerialSender(Node):
             if command_to_send == '':  # Assuming an empty string indicates no command
                 if self.last_command != 'krest':
                     command_to_send = 'krest'
-            self.wrapper(command_to_send)
+            self.wrapper([command_to_send, 0])
             self.last_command = command_to_send  # Update the last command sent
 
     def wrapper(self, task):  # Structure is [token, var=[], time]
