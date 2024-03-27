@@ -3,7 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
-from bittle_msgs.msg import Command  # Assuming Command.msg is structured as "string cmd"
+from bittle_msgs.msg import Command 
+from bittle_msgs.msg import State
 
 cmd_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'krest', 4: 'kpone',
              5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF', 9: 'kturn'}
@@ -17,10 +18,13 @@ class Driver(Node):
             self.detection_callback,
             1)
         # Create a publisher for the Command messages
-        self.publisher_ = self.create_publisher(Command, 'serial_command_topic', 10)
+        self.command_publisher = self.create_publisher(Command, 'serial_command_topic', 10)
+        self.state_publisher = self.create_publisher(State, 'state_topic', 10)
 
         self.current_state = {
             'found_acorn': False,
+            'found_black_pheromone': False,
+            'found_white_pheromone': False,
             'searching': True,
             'collecting': False,
             'collected': False,
@@ -36,11 +40,16 @@ class Driver(Node):
         self.current_state = self.analyze_detections(msg)
         command = self.decide_command(self.current_state)
         self.publish_command(command)
+        self.publish_state(self.current_state)
 
     def publish_command(self, command):
         msg = Command()
         msg.cmd = command
-        self.publisher_.publish(msg)
+        self.command_publisher.publish(msg)
+
+    def publish_state(self, state):
+        msg = self.current_state
+        self.state_publisher.publish(msg)
 
     def analyze_detections(self, detection_msg):
         # Analyze detection messages and update state
@@ -65,6 +74,9 @@ class Driver(Node):
         if self.current_state['searching'] == True and len(self.acorn_list) > 0:
             self.current_state['searching'] = False
             self.current_state['found_acorn'] = True
+        elif self.current_state['searching'] and len(self.black_pheromone_list) > 0 and len(self.white_pheromone_list) ==0:
+            self.current_state['found_black_pheromone'] = True
+
         
 
         return self.current_state
@@ -74,6 +86,8 @@ class Driver(Node):
         # Example simplified logic
         if state['found_acorn']:
             return self.follow_object(self.acorn_list)
+        elif not state['found_acorn'] and state['found_black_pheromone']:
+            return self.follow_object(self.black_pheromone_list)
         else:
             return cmd_dict[0]
         
