@@ -36,6 +36,8 @@ setup(
             'experiment_subscriber = bittle_ros2.experiment_subscriber:main',
             'demo_driver = bittle_ros2.demo_driver:main',
             'robot_object_detection_subscriber = bittle_ros2.robot_object_detection_subscriber:main',
+            'serial_sender = bittle_ros2.serial_sender:main',
+            'object_detection_to_command = bittle_ros2.object_detection_to_command:main',
         ],
     },
 )
