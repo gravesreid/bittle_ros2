@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
 from bittle_msgs.msg import Command  # Assuming Command.msg is structured as "string cmd"
 
-cmd_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone',
+cmd_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'krest', 4: 'kpone',
              5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF', 9: 'kturn'}
 
 class Driver(Node):

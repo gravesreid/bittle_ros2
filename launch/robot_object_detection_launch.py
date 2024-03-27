@@ -5,12 +5,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='bittle_ros2',
-            executable='object_detection_to_command',
-            name='object_detection_to_command',
-            output='screen'
-        ),
-        Node(
-            package='bittle_ros2',
             executable='serial_sender',
             name='serial_sender',
             output='screen'
@@ -25,7 +19,8 @@ def generate_launch_description():
                 {'output_encoding': 'rgb8'},
                 {'pixel_format': 'YUYV'},
                 {'image_size': [640,480]},
-                {'io_method': 'mmap'}
+                {'io_method': 'mmap'},
+                {'image_raw_jpeg_quality': 40},
             ]
         )
     ])

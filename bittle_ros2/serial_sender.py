@@ -41,7 +41,7 @@ class SerialSender(Node):
 
     def timer_callback(self):
         current_time = time.time()
-        if current_time - self.last_command_time >= 1:
+        if current_time - self.last_command_time >= 1.5:
             self.send_rest_command()
 
     def send_rest_command(self):
