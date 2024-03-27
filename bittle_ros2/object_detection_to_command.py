@@ -1,9 +1,9 @@
 import rclpy
 from rclpy.node import Node
-from bittle_msgs.srv import SerialCommand
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
+from bittle_msgs.msg import Command  # Assuming Command.msg is structured as "string cmd"
 
 cmd_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance', 4: 'kpone',
              5: 'kptwo', 6: 'kpthree', 7: 'kpfour', 8: 'kcollectF', 9: 'kturn'}
@@ -16,11 +16,8 @@ class Driver(Node):
             '/detection_topic',
             self.detection_callback,
             1)
-        self.service = self.create_service(
-            SerialCommand,
-            'get_next_command',
-            self.get_next_command_callback
-        )
+        # Create a publisher for the Command messages
+        self.publisher_ = self.create_publisher(Command, 'serial_command_topic', 10)
 
         self.current_state = {
             'found_acorn': False,
@@ -32,21 +29,18 @@ class Driver(Node):
             'returning': False,
             'mission_complete': False,
             'last_command_sent': None
-        }  # Simplified state representation
+        }
 
     def detection_callback(self, msg):
-        # Update state based on detection
-        # This should be where you analyze detections and update your state
+        # Update state based on detection and publish command based on updated state
         self.current_state = self.analyze_detections(msg)
+        command = self.decide_command(self.current_state)
+        self.publish_command(command)
 
-    def get_next_command_callback(self, request, response):
-        # Decide the next command based on current state
-        if self.current_state is not None:
-            command = self.decide_command(self.current_state)
-            response.next_command = command
-        else:
-            response.command = 'No command'  # Default or idle command
-        return response
+    def publish_command(self, command):
+        msg = Command()
+        msg.cmd = command
+        self.publisher_.publish(msg)
 
     def analyze_detections(self, detection_msg):
         # Analyze detection messages and update state
