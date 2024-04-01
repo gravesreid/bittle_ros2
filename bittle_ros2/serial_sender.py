@@ -4,6 +4,8 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 import serial
 from bittle_msgs.msg import Command
+from bittle_msgs.msg import SerialResponse
+import threading
 import time
 
 class SerialSender(Node):
@@ -18,7 +20,6 @@ class SerialSender(Node):
             timeout=1
         )
         
-        # Subscription to the Command topic
         self.subscription = self.create_subscription(
             Command,
             'serial_command_topic',
@@ -26,11 +27,21 @@ class SerialSender(Node):
             10,
             callback_group=ReentrantCallbackGroup()
         )
+        
+        # Publisher for serial responses
+        self.response_publisher = self.create_publisher(
+            SerialResponse,
+            'serial_response_topic',
+            10
+        )
+        
         self.last_command = None
         self.last_command_time = time.time()
 
-        # Timer to check for command sending interval
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        # Start a separate thread to read from serial port
+        self.serial_thread = threading.Thread(target=self.read_from_serial)
+        self.serial_thread.daemon = True
+        self.serial_thread.start()
 
     def command_callback(self, msg):
         current_time = time.time()
@@ -38,17 +49,6 @@ class SerialSender(Node):
             self.wrapper([msg.cmd, 0])
             self.last_command = msg.cmd
             self.last_command_time = current_time
-
-    def timer_callback(self):
-        current_time = time.time()
-        if current_time - self.last_command_time >= 3:
-            self.send_rest_command()
-
-    def send_rest_command(self):
-        if self.last_command != 'krest':
-            self.wrapper(['krest', 0])
-            self.last_command = 'krest'
-            self.last_command_time = time.time()
 
     def wrapper(self, task):
         if len(task) == 2:
@@ -59,11 +59,22 @@ class SerialSender(Node):
         self.get_logger().info(f"Sending: {instrStr.strip()}")
         self.ser.write(instrStr.encode())
 
+    def read_from_serial(self):
+        while True:
+            if self.ser.in_waiting > 0:
+                response = self.ser.readline().decode().strip()  # Read a line and decode it
+                self.publish_response(response)
+
+    def publish_response(self, response):
+        msg = SerialResponse()
+        msg.response = response
+        self.response_publisher.publish(msg)
+        self.get_logger().info(f"Published Serial Response: {response}")
+
 def main(args=None):
     rclpy.init(args=args)
     serial_sender = SerialSender()
     
-    # Use MultiThreadedExecutor to allow timer and subscription callback to be processed concurrently
     executor = MultiThreadedExecutor()
     rclpy.spin(serial_sender, executor=executor)
 
@@ -72,4 +83,5 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 

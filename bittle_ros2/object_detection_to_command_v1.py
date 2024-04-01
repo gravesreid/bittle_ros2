@@ -3,7 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
-from bittle_msgs.msg import Command, CommandBuffer, State
+from bittle_msgs.msg import Command 
+from bittle_msgs.msg import State
 import time
 
 cmd_dict = {'forward': 'kcrF', 'back': 'kbk', 'left': 'kcrL', 'right': 'kcrR', 'rest': 'krest', 'black1': 'kpone',
@@ -18,13 +19,9 @@ class Driver(Node):
             '/detection_topic',
             self.detection_callback,
             1)
-        
         # Create a publisher for the Command messages
         self.command_publisher = self.create_publisher(Command, 'serial_command_topic', 10)
-        # Create a publisher for the State messages
         self.state_publisher = self.create_publisher(State, 'state_topic', 10)
-        # create a publisher for command buffer
-        self.command_buffer_publisher = self.create_publisher(CommandBuffer, 'command_list_topic', 10)
 
         self.current_state = {
             'found_acorn': False,
@@ -37,39 +34,36 @@ class Driver(Node):
             'white_pheromones_dropped': 0,
             'returning': False,
             'mission_complete': False,
-            'last_command_sent': None,
-            'observing': False
+            'last_command_sent': None
         }
 
-        self.command_buffer = []
-
     def detection_callback(self, msg):
-        if self.current_state['observing'] and not self.current_state['collecting']:
-            self.current_state = self.process_detections(msg)
-        elif self.current_state['observing'] and self.current_state['collecting']:
-            self.current_state = self.process_detections(msg)
-
-
+        # Update state based on detection and publish command based on updated state
+        self.current_state = self.analyze_detections(msg)
         command = self.decide_command(self.current_state)
-        self.command_buffer.append(command)
-        self.publish_command()
+        self.publish_command(command)
         self.publish_state()
 
-    def publish_command(self):
-        if not self.command_buffer:
+    def process_detections(self):
+        if not hasattr(self, 'latest_detection_msg'):
+            self.get_logger().info("No detection message received yet.")
             return
-        # Find the most frequent command
-        most_frequent_command = max(set(self.command_buffer), key=self.command_buffer.count)
-        # Clear the command buffer after selecting the most frequent command
-        self.command_buffer.clear()
+        msg = self.latest_detection_msg
         
-        msg = Command()
-        msg2 = CommandBuffer()
-        msg.cmd = most_frequent_command
-        msg2.command_buffer = self.command_buffer
-        self.command_publisher.publish(msg)
-        self.command_buffer_publisher.publish(msg2)
 
+    def publish_command(self, command):
+        if isinstance(command, list):
+            for cmd, delay in command:
+                print(f"Sending command: {cmd}")
+                print(f"Delaying for {delay} seconds")
+                msg = Command()
+                msg.cmd = cmd
+                self.command_publisher.publish(msg)
+                time.sleep(delay)
+        else:
+            msg = Command()
+            msg.cmd = command
+            self.command_publisher.publish(msg)
 
     def publish_state(self):
         msg = State()
@@ -88,26 +82,11 @@ class Driver(Node):
             msg.last_command_sent = str(last_command) 
         else:
             msg.last_command_sent = 'None'
-        self.state_publisher.publish(msg)  
+        self.state_publisher.publish(msg)    
 
-    def update_state(self):
-                # if we are searching and find an acorn, we are no longer searching
-        if self.current_state['searching'] == True and len(self.acorn_list) > 0:
-            self.current_state['searching'] = False
-            self.current_state['found_acorn'] = True
-        elif not self.current_state['found_black_pheromone'] and len(self.black_pheromone_list) > 0:
-            self.current_state['found_black_pheromone'] = True
-        elif not self.current_state['found_white_pheromone'] and len(self.white_pheromone_list) > 0:
-            self.current_state['found_white_pheromone'] = True
-        elif len(self.acorn_list) > 0 and self.acorn_list[-1][1] > 0.9:
-            print("acorn position: ", self.acorn_list[-1][1])
-            self.current_state['collecting'] = True
-        
-        return self.current_state
-
-
-    def process_detections(self, detection_msg):
+    def analyze_detections(self, detection_msg):
         # Analyze detection messages and update state
+        # Return a simplified state representation based on the latest detections
         self.get_logger().info("Received a /detection_topic message!")
 
         results = list(detection_msg.results) # returns a list with numeric labels for the objects 0: acorn 1: black pheromone 2: white pheromone
@@ -122,9 +101,22 @@ class Driver(Node):
             elif results[i] == 1:
                 self.black_pheromone_list.append(xywhn_list[(i*4):(4*(i+1))])
             elif results[i] == 2:
-                self.white_pheromone_list.append(xywhn_list[(i*4):(4*(i+1))])    
-        return self.acorn_list, self.black_pheromone_list, self.white_pheromone_list   
+                self.white_pheromone_list.append(xywhn_list[(i*4):(4*(i+1))])       
 
+        # based on the detection results, update the state
+        # if we are searching and find an acorn, we are no longer searching
+        if self.current_state['searching'] == True and len(self.acorn_list) > 0:
+            self.current_state['searching'] = False
+            self.current_state['found_acorn'] = True
+        elif not self.current_state['found_black_pheromone'] and len(self.black_pheromone_list) > 0:
+            self.current_state['found_black_pheromone'] = True
+        elif not self.current_state['found_white_pheromone'] and len(self.white_pheromone_list) > 0:
+            self.current_state['found_white_pheromone'] = True
+        elif len(self.acorn_list) > 0 and self.acorn_list[-1][1] > 0.9:
+            print("acorn position: ", self.acorn_list[-1][1])
+            self.current_state['collecting'] = True
+        
+        return self.current_state
 
     def decide_command(self, state):
         # if we found an acorn, that's all we need care about
@@ -143,10 +135,6 @@ class Driver(Node):
         else:
             cmd = cmd_dict['rest']
         self.current_state['last_command_sent'] = cmd
-
-        self.command_buffer.append(cmd)
-        if len(self.command_buffer) > 5:
-            self.command_buffer.pop(0)
         return cmd
         
     def follow_object(self, detection_list):
@@ -174,22 +162,27 @@ class Driver(Node):
         
         # Adjust the robot's x position by spinning.
         if x_position > 0.7:
+            print("acorn is to the right, spinning right")
             commands.append([cmd_dict['spinRight'], .25])
             commands.append([cmd_dict['buttUp'], 0])
         elif x_position < 0.3:
+            print("acorn is to the left, spinning left")
             commands.append([cmd_dict['spinLeft'], .25])
             commands.append([cmd_dict['buttUp'], 0])
         
         # Adjust the robot's y position by moving backward or forward.
         if y_position < 0.5:
+            print("acorn is below, moving forward")
             commands.append([cmd_dict['forward'], .5])
             commands.append([cmd_dict['buttUp'], 0])
         elif y_position > 0.8:
+            print("acorn is above, moving backward")
             commands.append([cmd_dict['back'], .5])
             commands.append([cmd_dict['buttUp'], 0])
         
         # If the x and y positions are within acceptable ranges, attempt to collect the acorn.
         if 0.3 <= x_position <= 0.7 and 0.5 <= y_position <= 0.8:
+            print("acorn is in the center, collecting")
             commands.append([cmd_dict['collect'], 1])
             commands.append([cmd_dict['buttUp'], 0])
             # Check if the acorn was successfully collected.
