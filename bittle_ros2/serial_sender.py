@@ -35,34 +35,25 @@ class SerialSender(Node):
             10
         )
         
-        self.last_command = None
-        self.last_command_time = time.time()
-
         # Start a separate thread to read from serial port
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
         self.serial_thread.start()
 
     def command_callback(self, msg):
-        current_time = time.time()
-        if msg.cmd != self.last_command:
-            self.wrapper([msg.cmd, 0])
-            self.last_command = msg.cmd
-            self.last_command_time = current_time
+        for cmd, delay in zip(msg.cmd, msg.delay):
+            self.send_command(cmd)
+            time.sleep(delay)
 
-    def wrapper(self, task):
-        if len(task) == 2:
-            self.serialWriteByte([task[0]])
-
-    def serialWriteByte(self, var=[]):
-        instrStr = var[0] + '\n'
+    def send_command(self, cmd):
+        instrStr = cmd + '\n'
         self.get_logger().info(f"Sending: {instrStr.strip()}")
         self.ser.write(instrStr.encode())
 
     def read_from_serial(self):
         while True:
             if self.ser.in_waiting > 0:
-                response = self.ser.readline().decode().strip()  # Read a line and decode it
+                response = self.ser.readline().decode().strip()
                 self.publish_response(response)
 
     def publish_response(self, response):
@@ -83,5 +74,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 

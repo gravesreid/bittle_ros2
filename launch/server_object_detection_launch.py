@@ -12,6 +12,6 @@ def generate_launch_description():
         Node(
             package='bittle_ros2',
             executable='object_detection_subscriber',
-            output='log'
+            output='screen'
         )
     ])

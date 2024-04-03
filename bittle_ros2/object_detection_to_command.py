@@ -4,7 +4,7 @@ from rclpy.duration import Duration
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from bittle_msgs.msg import Detection
-from bittle_msgs.msg import Command, CommandBuffer, State
+from bittle_msgs.msg import Command, CommandList, State
 import time
 
 cmd_dict = {'forward': 'kcrF', 'back': 'kbk', 'left': 'kcrL', 'right': 'kcrR', 'rest': 'krest', 'black1': 'kpone',
@@ -25,7 +25,7 @@ class Driver(Node):
         # Create a publisher for the State messages
         self.state_publisher = self.create_publisher(State, 'state_topic', 10)
         # create a publisher for command buffer
-        self.command_buffer_publisher = self.create_publisher(CommandBuffer, 'command_buffer_topic', 10)
+        self.command_list_publisher = self.create_publisher(CommandList, 'command_list_topic', 10)
 
         self.current_state = {
             'found_acorn': False,
@@ -42,68 +42,82 @@ class Driver(Node):
             'observing': False
         }
 
-        self.command_buffer = []
+        self.command_list = []
+        self.command_to_send = None
 
     def detection_callback(self, msg):
-        self.process_detections(msg)
-        self.current_state = self.update_state()
-        command = self.decide_command(self.current_state)
-        self.command_buffer.append(command)
+        self.process_detections(msg) # turning message into lists of detections (acorn, pheromones)
+        self.current_state = self.update_state() # updating the state based on the detections
+        command = self.decide_command(self.current_state) # what command to send based on the state and detections
+        self.command_list.append(command) # add the command to the list of possible commands to send
+        self.choose_command_to_send() # choose the most frequent command to send
         self.publish_command()
         self.publish_state()
-        self.publish_command_buffer()
+        self.publish_command_list()
 
-    def publish_command_buffer(self):
-        msg = CommandBuffer()
-        msg.command_buffer = self.command_buffer
-        self.command_buffer_publisher.publish(msg)
+    def publish_command_list(self):
+        print("command list: ", self.command_list)
+        msg = CommandList()
+        list_of_commands = []
+        for command_pair in self.command_list:
+            list_of_commands.append(command_pair[0])
+        msg.command_list = list_of_commands
+        self.get_logger().info(f"Publishing command list: {msg.command_list}")
+        self.command_list_publisher.publish(msg)
+
+    def choose_command_to_send(self):
+        if not self.command_list:
+            return
+        # 
 
 
     def publish_command(self):
-        if not self.command_buffer:
+        if not self.command_list:
             return
-        
+        # Create empty dictionary to store command frequencies
         command_frequency = {}
-        for command_pair in self.command_buffer:
+        # command buffer is list of list of lists, make list of lists
+        print("command list before reducing: ", self.command_list)
+        for command_pair in self.command_list:
             command = command_pair[0]
-            if command[0] in command_frequency:
-                command_frequency[command[0]] += 1
+            if command in command_frequency:
+                command_frequency[command] += 1
             else:
-                command_frequency[command[0]] = 1
+                command_frequency[command] = 1
         most_frequent_command = max(command_frequency, key=command_frequency.get)
 
-        for command_pair in self.command_buffer:
+        for command_pair in self.command_list:
             if command_pair[0] == most_frequent_command:
                 command_to_send = command_pair
                 break
         
-        # Clear the command buffer after selecting the most frequent command
-        self.command_buffer.clear()
+        # Clear the command buffer after selecting the most frequent command, if it is too long
+        if len(self.command_list) > 5:
+            self.command_list.clear()
+        print("command to send: ", command_to_send)
         
         self.process_command_sequence(command_to_send)
 
 
         
-    def process_command_sequence(self, commands):
-        if not commands:
+    def process_command_sequence(self, command_pair):
+        if not command_pair:
             return  # No more commands to process
 
         # Extract the first command and its delay
-        command, delay = commands.pop(0)
+        print("command pair: ", command_pair)
+        command, delay = command_pair
 
         # Send the command
         print(f"Sending command: {command}, with delay: {delay}")
         msg = Command()
         msg.cmd = command
+        msg.delay = delay
+        self.get_logger().info(f"Publishing command: {msg.cmd}, with delay: {msg.delay}")
         self.command_publisher.publish(msg)
 
-        # If there are more commands, set up the timer for the next one
-        if commands:
-            # Convert delay to seconds, ensuring it's a float
-            delay = float(delay)
-            # Set up a one-shot timer to call this method again for the next command
-            self.timer = self.create_timer(delay, lambda: self.process_command_sequence(commands), oneshot=True)
 
+ 
 
     def publish_state(self):
         msg = State()
@@ -122,7 +136,9 @@ class Driver(Node):
             msg.last_command_sent = str(last_command) 
         else:
             msg.last_command_sent = 'None'
+        self.get_logger().info(f"Publishing state: {msg}")
         self.state_publisher.publish(msg)  
+        
 
     def update_state(self):
                 # if we are searching and find an acorn, we are no longer searching
@@ -174,11 +190,10 @@ class Driver(Node):
 
         # if we haven't found anything, stop and wait for a detection
         else:
-            cmd = [[cmd_dict['rest'], 0]]
+            cmd = [cmd_dict['rest'], 0]
 
-        self.command_buffer.append(cmd)
-        if len(self.command_buffer) > 5:
-            self.command_buffer.pop(0)
+        #print("decide command: ", cmd)
+
         return cmd
         
     def follow_object(self, detection_list):
@@ -193,6 +208,7 @@ class Driver(Node):
         else:
             cmd = cmd_dict['rest']
         commands.append([cmd, 0])
+        #print("follow object commands: ", commands)
         return commands
     
     def collect_acorn(self, detection_list):
@@ -234,6 +250,7 @@ class Driver(Node):
                 # If the acorn was not collected, reassess the position and try again.
                 commands.append([cmd_dict['buttUp'], 0])
                 initial_detection_count = len(detection_list)
+        #print("collect acorn commands: ", commands)
 
         return commands
 
