@@ -31,6 +31,7 @@ class PhotoClient(Node):
         self.send_request()
 
     def send_request(self):
+        self.get_logger().info('Sending request to capture photo')
         future = self.client.call_async(self.request)
         future.add_done_callback(self.response_callback)
 
@@ -48,7 +49,7 @@ class PhotoClient(Node):
             # Show the image in a separate thread to avoid blocking
             threading.Thread(target=self.display_image, args=(image,)).start()
         except Exception as e:
-            self.get_logger().error('Service call failed %r' % (e,))
+            self.get_logger().error(f'Service call failed: {e}')
 
     def display_image(self, image):
         cv2.imshow("Captured Image", image)
@@ -69,7 +70,7 @@ class PhotoClient(Node):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "You are a robot and need to explore the room until you find an apple. Choose a command to execute from forward, back, left, or right as [fwd], [left], [right], or [back]"},
+                        {"type": "text", "text": "You are a robot and need to explore the room until you find an exit after you exit the room, rest. Choose a command to execute from rest, forward, back, left, or right as [rest], [fwd], [left], [right], or [back]"},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -81,11 +82,13 @@ class PhotoClient(Node):
             ],
             max_tokens=300,
         )
-        command = caption.choices[0].message.content  # Get the command
-        self.get_logger().info(command)  # Print the command
+        self.get_logger().info(f"Caption received: {caption.choices[0].message.content}")
+        command = caption.choices[0].message.content.strip('[]').lower()  # Get the command
+        self.get_logger().info(f"Command received: {command}")  # Print the command
         self.send_command(command)  # Send the command to the executor node
 
     def send_command(self, command):
+        self.get_logger().info(f"Sending command: {command}")
         request = ExecuteCommand.Request()
         request.command = command
         future = self.command_client.call_async(request)
@@ -100,8 +103,7 @@ class PhotoClient(Node):
                 self.get_logger().error('Command execution failed')
             self.send_request()  # Request another image
         except Exception as e:
-            self.get_logger().error('Service call failed %r' % (e,))
-
+            self.get_logger().error(f'Service call failed: {e}')
 
 def main(args=None):
     rclpy.init(args=args)
@@ -109,9 +111,9 @@ def main(args=None):
     rclpy.spin(photo_client)
     rclpy.shutdown()
 
-
 if __name__ == '__main__':
     main()
+
 
 
 
