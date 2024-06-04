@@ -82,7 +82,6 @@ class PhotoClient(Node):
             ],
             max_tokens=300,
         )
-        self.get_logger().info(f"Caption received: {caption.choices[0].message.content}")
         command = caption.choices[0].message.content.strip('[]').lower()  # Get the command
         self.get_logger().info(f"Command received: {command}")  # Print the command
         self.send_command(command)  # Send the command to the executor node
@@ -113,6 +112,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 

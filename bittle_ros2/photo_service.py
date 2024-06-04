@@ -15,14 +15,17 @@ class PhotoService(Node):
     def capture_photo_callback(self, request, response):
         self.get_logger().info('Capture photo request received')
         cap = cv2.VideoCapture(0)
+
         ret, frame = cap.read()
         if ret:
             response.image = self.bridge.cv2_to_imgmsg(frame, "bgr8")
             self.get_logger().info('Image captured successfully')
+            cap.release()
+            return response
         else:
             self.get_logger().error('Failed to capture image')
-        cap.release()
-        return response
+            cap.release()
+            return response  # Send an empty response if image capture fails
 
 def main(args=None):
     rclpy.init(args=args)
@@ -32,3 +35,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
