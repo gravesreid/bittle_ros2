@@ -40,6 +40,7 @@ setup(
             'object_detection_to_command = bittle_ros2.object_detection_to_command:main',
             'photo_service = bittle_ros2.photo_service:main',
             'photo_client = bittle_ros2.photo_client:main',
+            'gpt_driver = bittle_ros2.gpt_driver:main'
         ],
     },
 )
