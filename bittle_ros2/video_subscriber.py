@@ -1,70 +1,71 @@
-import rclpy  # Python library for ROS 2
-from rclpy.node import Node  # Handles the creation of nodes
-from sensor_msgs.msg import CompressedImage  # Correct message type for compressed images
-from cv_bridge import CvBridge  # Package to convert between ROS and OpenCV Images
-import queue
-import threading
-import time
-import cv2  # OpenCV library
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import CompressedImage
+from cv_bridge import CvBridge
+from multiprocessing import Process, Queue, Value
+import cv2
+import numpy as np
 from rclpy.executors import MultiThreadedExecutor
 
-# define a class for displaying the video feed
-
-class ImageDisplay:
-    def __init__(self, max_queue_size=2):
-        self.frame_queue = queue.Queue(maxsize=max_queue_size)
-        self.display_thread = threading.Thread(target=self.run_display)
-        self.display_thread.daemon = True
-        self.display_thread.start()
-
-    def run_display(self):
-        while True:
-            try:
-                # Wait for the next frame with a timeout to allow checking for exit conditions
-                frame = self.frame_queue.get(timeout=0.01)
-                cv2.imshow("camera", frame)
-                if cv2.waitKey(1) == ord('q'):
-                    break
-            except queue.Empty:
-                # The timeout allows the loop to check for exit conditions regularly
-                continue
-
-    def update_frame(self, frame):
-        while not self.frame_queue.empty():
-            # Discard all older frames to ensure the queue only has the most recent frame
-            try:
-                self.frame_queue.get(block=False)
-            except queue.Empty:
-                break  # The queue is already empty
-
-        # Now that the queue is empty or has been emptied, add the new frame
-        try:
-            self.frame_queue.put(frame, block=False)
-        except queue.Full:
-            # This case should not happen since we just emptied the queue,
-            # but it's good practice to handle it
-            pass
+def display_frames(frame_queue, stop_signal):
+    while not stop_signal.value:
+        if not frame_queue.empty():
+            frame = frame_queue.get()
+            if frame is None:
+                break
+            cv2.imshow("camera", frame)
+            if cv2.waitKey(1) == ord('q'):
+                stop_signal.value = 1
+                break
 
 class ImageSubscriber(Node):
-    def __init__(self):
+    def __init__(self, frame_queue, stop_signal):
         super().__init__('image_subscriber')
         self.bridge = CvBridge()
+        self.frame_queue = frame_queue
+        self.stop_signal = stop_signal
         self.subscription = self.create_subscription(
             CompressedImage, '/image_raw/compressed', self.listener_callback, 1)
-        self.image_display = ImageDisplay()  # Create an instance of the ImageDisplay class
 
     def listener_callback(self, data):
-        self.get_logger().info('Receiving video frame')
-        current_frame = self.bridge.compressed_imgmsg_to_cv2(data, desired_encoding='bgr8')
-        self.image_display.update_frame(current_frame)  # Update the frame to be displayed
+        try:
+            current_frame = self.bridge.compressed_imgmsg_to_cv2(data, desired_encoding='bgr8')
+            if not self.frame_queue.full():
+                self.frame_queue.put(current_frame)
+            else:
+                self.get_logger().warn("Frame queue is full. Dropping frame.")
+        except Exception as e:
+            self.get_logger().error(f"Error converting image: {e}")
 
 def main(args=None):
+    frame_queue = Queue(maxsize=10)
+    stop_signal = Value('i', 0)
+    display_process = Process(target=display_frames, args=(frame_queue, stop_signal))
+    display_process.start()
+
     rclpy.init(args=args)
-    image_subscriber = ImageSubscriber()
+    image_subscriber = ImageSubscriber(frame_queue, stop_signal)
     executor = MultiThreadedExecutor()
-    rclpy.spin(image_subscriber, executor=executor)
-    image_subscriber.destroy_node()
-    rclpy.shutdown()
+    executor.add_node(image_subscriber)
+    try:
+        executor.spin()
+    finally:
+        image_subscriber.destroy_node()
+        rclpy.shutdown()
+        stop_signal.value = 1
+        frame_queue.put(None)  # Signal the display process to exit
+        display_process.join()
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
+
+
