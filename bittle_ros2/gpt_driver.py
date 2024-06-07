@@ -4,7 +4,7 @@ import serial
 import struct
 from bittle_msgs.srv import ExecuteCommand
 
-dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest': 'krest'}
+dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest': 'krest', 'spinleft': 'kvtL', 'spinright': 'kvtR'}
 
 class Driver(Node):
 

@@ -8,6 +8,7 @@ from openai import OpenAI
 import base64
 import threading
 import time
+import json
 
 api_loc = "/home/reid/ros2_ws/gpt_key.txt"
 
@@ -57,27 +58,57 @@ class PhotoClient(Node):
         with open("input_image.jpg", "rb") as f:
             encoded_image = base64.b64encode(f.read()).decode('utf-8')
 
-        caption = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "You are a robot and need to explore the room until you find an exit after you exit the room, rest. Choose a command to execute from rest, forward, back, left, or right as [rest], [fwd], [left], [right], or [back]"},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{encoded_image}"
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "send_command",
+                    "description": "Send a command to the robot",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "command": {
+                                "type": "string",
+                                "description": "The command to execute, e.g., rest, fwd, back, left, right",
                             },
                         },
-                    ],
+                        "required": ["command"],
+                    },
                 }
-            ],
-            max_tokens=300,
+            }
+        ]
+
+        messages = [
+            {
+                "role": "user",
+                "content": "You are a robot and need to explore the room until you find an exit after you exit the room, rest. Choose a command to execute from rest, forward, back, spin in place left or right, and turn left or right, eg: rest, fwd, spinleft, spinright, left, right, or back",
+            },
+            {
+                "role": "function",
+                "name": "image_input",
+                "content": f"data:image/jpeg;base64,{encoded_image}"
+            }
+        ]
+
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=tools,
+            tool_choice="auto"
         )
-        command = caption.choices[0].message.content.strip('[]').lower()
-        self.get_logger().info(f"Command received: {command}")
-        self.send_command(command)
+
+        # Extract command from tool call response
+        tool_calls = completion.choices[0].message.tool_calls
+        self.get_logger().info(f"{completion.choices[0].message.content}")
+        if tool_calls:
+                for tool_call in tool_calls:
+                    function_args = json.loads(tool_call.function.arguments)
+                    self.get_logger().info(f"Function args: {function_args}")
+                    command = function_args["command"]
+                    self.get_logger().info(f"Command received: {command}")
+                    self.send_command(command)
+        else:
+            self.get_logger().error("No command received from model")
 
     def send_command(self, command):
         self.get_logger().info(f"Sending command: {command}")
