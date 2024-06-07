@@ -7,6 +7,7 @@ import os
 from openai import OpenAI
 import base64
 import threading
+import time
 
 api_loc = "/home/reid/ros2_ws/gpt_key.txt"
 
@@ -22,8 +23,9 @@ class PhotoClient(Node):
         super().__init__('photo_client_node')
         self.client = self.create_client(CapturePhoto, 'capture_photo')
         self.command_client = self.create_client(ExecuteCommand, 'execute_command')
-        while not self.client.wait_for_service(timeout_sec=1.0) or not self.command_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Services not available, waiting...')
+        time.sleep(10)  # Add a delay to ensure the services have enough time to start
+        while not self.client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('capture_photo service not available, waiting...')
         self.get_logger().info('Services available, continuing...')
         self.request = CapturePhoto.Request()
         self.bridge = CvBridge()
@@ -103,10 +105,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-
-
-
 
 
 
