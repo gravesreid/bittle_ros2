@@ -11,6 +11,7 @@ class PhotoService(Node):
         super().__init__('photo_service_node')
         self.srv = self.create_service(CapturePhoto, 'capture_photo', self.capture_photo_callback)
         self.bridge = CvBridge()
+        self.get_logger().info('Service ready to capture photo')
 
     def capture_photo_callback(self, request, response):
         self.get_logger().info('Capture photo request received')
@@ -25,7 +26,7 @@ class PhotoService(Node):
         else:
             self.get_logger().error('Failed to capture image')
             cap.release()
-            return response  # Send an empty response if image capture fails
+            return response
 
 def main(args=None):
     rclpy.init(args=args)
@@ -35,4 +36,5 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
