@@ -4,7 +4,7 @@ import serial
 import struct
 from bittle_msgs.srv import ExecuteCommand
 
-dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest': 'krest', 'spinleft': 'kvtL', 'spinright': 'kvtR'}
+dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest': 'kbalance', 'spinleft': 'kvtL', 'spinright': 'kvtR'}
 
 class Driver(Node):
 
@@ -24,17 +24,20 @@ class Driver(Node):
     def execute_command_callback(self, request, response):
         command = request.command.strip('[] ').lower()
         self.get_logger().info(f"Executing command: {command}")
-        try:
-            if command in dir_dict:
-                self.wrapper([dir_dict[command], 3])
-                self.create_timer(3.0, self.send_rest_command)
-                response.success = True
-            else:
-                self.get_logger().error(f"Unknown command: {command}")
+        command_sent = False
+        if command_sent is False:
+            try:
+                if command in dir_dict:
+                    self.wrapper([dir_dict[command], 3])
+                    self.create_timer(300.0, self.send_rest_command)
+                    response.success = True
+                    command_sent = True
+                else:
+                    self.get_logger().error(f"Unknown command: {command}")
+                    response.success = False
+            except Exception as e:
+                self.get_logger().error(f"Failed to execute command: {e}")
                 response.success = False
-        except Exception as e:
-            self.get_logger().error(f"Failed to execute command: {e}")
-            response.success = False
         return response
 
     def send_rest_command(self):

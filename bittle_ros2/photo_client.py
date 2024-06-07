@@ -81,7 +81,7 @@ class PhotoClient(Node):
         messages = [
             {
                 "role": "user",
-                "content": "You are a robot and need to explore the room until you find an exit after you exit the room, rest. Choose a command to execute from rest, forward, back, spin in place left or right, and turn left or right, eg: rest, fwd, spinleft, spinright, left, right, or back",
+                "content": "You are a robot and need to go to where the tile meets the carpet, then turn around and go back to where you started, then rest. Choose a command to execute from rest, forward, back, spin in place left or right, and turn left or right, eg: rest, fwd, spinleft, spinright, left, right, or back",
             },
             {
                 "role": "function",
@@ -94,12 +94,13 @@ class PhotoClient(Node):
             model="gpt-4o",
             messages=messages,
             tools=tools,
-            tool_choice="auto"
+            tool_choice="auto",
+            max_tokens=1000
         )
 
         # Extract command from tool call response
         tool_calls = completion.choices[0].message.tool_calls
-        self.get_logger().info(f"{completion.choices[0].message.content}")
+        self.get_logger().info(f"Message: {completion.choices[0].message.content}")
         if tool_calls:
                 for tool_call in tool_calls:
                     function_args = json.loads(tool_call.function.arguments)
