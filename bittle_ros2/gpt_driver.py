@@ -8,7 +8,7 @@ dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest
 
 class Driver(Node):
 
-    def __init__(self, port='/dev/ttyAMA0'):
+    def __init__(self, port='/dev/ttyS0'):
         super().__init__('driver_node')
         self.service = self.create_service(ExecuteCommand, 'execute_command', self.execute_command_callback)
         self.ser = serial.Serial(
