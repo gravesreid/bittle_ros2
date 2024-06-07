@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 import serial
 import struct
-import time
 from bittle_msgs.srv import ExecuteCommand
 
 dir_dict = {'fwd': 'kwkF', 'back': 'kbk', 'left': 'kwkL', 'right': 'kwkR', 'rest': 'krest'}
@@ -20,6 +19,7 @@ class Driver(Node):
             bytesize=serial.EIGHTBITS,
             timeout=1
         )
+        self.get_logger().info('Driver node initialized')
 
     def execute_command_callback(self, request, response):
         command = request.command.strip('[] ').lower()
@@ -49,7 +49,11 @@ class Driver(Node):
             self.serialWriteNumToByte(task[0], task[1])
         else:
             self.serialWriteByte(task[1])
-        time.sleep(task[-1])
+        self.get_logger().info(f"Sleeping for {task[-1]} seconds")
+        self.create_timer(task[-1], self.timer_callback)
+
+    def timer_callback(self):
+        self.get_logger().info("Timer completed")
 
     def serialWriteNumToByte(self, token, var=[]):
         self.get_logger().info(f"serialWriteNumToByte token: {token}, var: {var}")
@@ -87,6 +91,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 
