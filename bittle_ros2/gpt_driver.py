@@ -20,6 +20,7 @@ class Driver(Node):
             timeout=1
         )
         self.get_logger().info('Driver node initialized')
+        self.last_command = None
 
     def execute_command_callback(self, request, response):
         command = request.command.strip('[] ').lower()
@@ -29,9 +30,10 @@ class Driver(Node):
             try:
                 if command in dir_dict:
                     self.wrapper([dir_dict[command], 3])
-                    self.create_timer(300.0, self.send_rest_command)
+                    self.create_timer(3, self.send_rest_command)
                     response.success = True
                     command_sent = True
+                    self.last_command = command
                 else:
                     self.get_logger().error(f"Unknown command: {command}")
                     response.success = False
@@ -41,8 +43,11 @@ class Driver(Node):
         return response
 
     def send_rest_command(self):
-        self.get_logger().info("Sending rest command")
-        self.wrapper([dir_dict['rest'], 0])
+        if self.last_command != 'rest':
+            self.get_logger().info("Sending rest command")
+            self.wrapper([dir_dict['rest'], 0])
+            self.last_command = 'rest'
+
 
     def wrapper(self, task):
         self.get_logger().info(f"Wrapper task: {task}")
