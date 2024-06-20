@@ -8,12 +8,12 @@ import time
 class SerialNode(Node):
     def __init__(self):
         super().__init__('serial_node')
-        self.publisher_ = self.create_publisher(String, 'imu_data', 10)
+        self.publisher_ = self.create_publisher(String, 'imu_data', 1)  # Set buffer size to 1
         self.subscription = self.create_subscription(
             String,
             'command',
             self.command_callback,
-            10)
+            1)  # Set buffer size to 1
         self.subscription  # prevent unused variable warning
 
         self.port = '/dev/ttyAMA0'  # Ensure this is the correct port
@@ -23,6 +23,10 @@ class SerialNode(Node):
 
         self.latest_data = None
         self.data_lock = threading.Lock()
+
+        self.velocity = [0.0, 0.0, 0.0]
+        self.position = [0.0, 0.0, 0.0]
+        self.last_time = time.time()
 
         # Start a thread to read IMU data
         self.read_thread = threading.Thread(target=self.read_data)
@@ -60,16 +64,32 @@ class SerialNode(Node):
             values = data.split('\t')
             # Check if we have the correct number of values
             if len(values) == 7:
-                yaw, pitch, roll, x_acc, y_acc, z_acc, world_acc = values
+                yaw, pitch, roll, x_acc, y_acc, z_acc, world_acc = map(float, values)
+
+                # Get the current time and calculate delta time
+                current_time = time.time()
+                dt = current_time - self.last_time
+                self.last_time = current_time
+
+                # Integrate acceleration to get velocity
+                self.velocity[0] += (x_acc / 16384.0) * dt
+                self.velocity[1] += (y_acc / 16384.0) * dt
+                self.velocity[2] += (z_acc / 16384.0) * dt
+
+                # Integrate velocity to get position
+                self.position[0] += self.velocity[0] * dt
+                self.position[1] += self.velocity[1] * dt
+                self.position[2] += self.velocity[2] * dt
+
                 # Create formatted string with labels
                 formatted_data = (
-                    f"Yaw: {yaw}, "
-                    f"Pitch: {pitch}, "
-                    f"Roll: {roll}, "
-                    f"X Acceleration: {x_acc}, "
-                    f"Y Acceleration: {y_acc}, "
-                    f"Z Acceleration: {z_acc}, "
-                    f"World Acceleration: {world_acc}"
+                    f"Yaw: {yaw:.2f}, "
+                    f"Velocity X: {self.velocity[0]:.2f}, "
+                    f"Velocity Y: {self.velocity[1]:.2f}, "
+                    f"Velocity Z: {self.velocity[2]:.2f}, "
+                    f"Position X: {self.position[0]:.2f}, "
+                    f"Position Y: {self.position[1]:.2f}, "
+                    f"Position Z: {self.position[2]:.2f}"
                 )
                 return formatted_data
             else:
@@ -101,6 +121,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-
-
