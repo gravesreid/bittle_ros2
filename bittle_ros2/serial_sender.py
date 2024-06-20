@@ -1,79 +1,59 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
+from std_msgs.msg import String
 import serial
-from bittle_msgs.msg import Command
-from bittle_msgs.msg import SerialResponse
 import threading
-import time
 
-class SerialSender(Node):
-    def __init__(self, port='/dev/ttyAMA0'):
-        super().__init__('serial_sender')
-        self.ser = serial.Serial(
-            port=port,
-            baudrate=115200,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1
-        )
-        
+class SerialNode(Node):
+    def __init__(self):
+        super().__init__('serial_node')
+        self.publisher_ = self.create_publisher(String, 'imu_data', 10)
         self.subscription = self.create_subscription(
-            Command,
-            'serial_command_topic',
+            String,
+            'command',
             self.command_callback,
-            10,
-            callback_group=ReentrantCallbackGroup()
-        )
-        
-        # Publisher for serial responses
-        self.response_publisher = self.create_publisher(
-            SerialResponse,
-            'serial_response_topic',
-            10
-        )
-        
-        # Start a separate thread to read from serial port
-        self.serial_thread = threading.Thread(target=self.read_from_serial)
-        self.serial_thread.daemon = True
-        self.serial_thread.start()
+            10)
+        self.subscription  # prevent unused variable warning
 
-    def command_callback(self, msg):
-        for cmd, delay in zip(msg.cmd, msg.delay):
-            self.send_command(cmd)
-            time.sleep(delay)
+        self.port = '/dev/ttyAMA0'  # Ensure this is the correct port
+        self.ser = serial.Serial(self.port, 115200, timeout=1)
 
-    def send_command(self, cmd):
-        instrStr = cmd + '\n'
-        self.get_logger().info(f"Sending: {instrStr.strip()}")
-        self.ser.write(instrStr.encode())
+        self.get_logger().info(f"Connected to {self.port}")
 
-    def read_from_serial(self):
+        # Start a thread to read IMU data
+        self.read_thread = threading.Thread(target=self.read_data)
+        self.read_thread.daemon = True
+        self.read_thread.start()
+
+    def read_data(self):
         while True:
             if self.ser.in_waiting > 0:
-                response = self.ser.readline().decode().strip()
-                self.publish_response(response)
+                data = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                msg = String()
+                msg.data = data
+                self.publisher_.publish(msg)
+            rclpy.spin_once(self, timeout_sec=0.1)
 
-    def publish_response(self, response):
-        msg = SerialResponse()
-        msg.response = response
-        self.response_publisher.publish(msg)
-        self.get_logger().info(f"Published Serial Response: {response}")
+    def command_callback(self, msg):
+        command = msg.data
+        self.send_command(command)
+
+    def send_command(self, command):
+        try:
+            self.ser.write((command + '\n').encode())
+            self.get_logger().info(f"Sent command: {command}")
+        except Exception as e:
+            self.get_logger().error(f"Error sending command: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
-    serial_sender = SerialSender()
-    
-    executor = MultiThreadedExecutor()
-    rclpy.spin(serial_sender, executor=executor)
 
-    serial_sender.destroy_node()
+    serial_node = SerialNode()
+
+    rclpy.spin(serial_node)
+
+    serial_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-
-
-
