@@ -60,36 +60,26 @@ class SerialNode(Node):
 
     def format_imu_data(self, data):
         try:
-            # Split the data based on tab character
-            values = data.split('\t')
+            # Remove the labels from the data if they exist
+            labels = ['Yaw: ', 'Velocity X: ', 'Velocity Y: ', 'Velocity Z: ', 'Position X: ', 'Position Y: ', 'Position Z: ']
+            for label in labels:
+                data = data.replace(label, '')
+
+            # Split the data based on comma and space
+            values = data.split(', ')
             # Check if we have the correct number of values
             if len(values) == 7:
-                yaw, pitch, roll, x_acc, y_acc, z_acc, world_acc = map(float, values)
-
-                # Get the current time and calculate delta time
-                current_time = time.time()
-                dt = current_time - self.last_time
-                self.last_time = current_time
-
-                # Integrate acceleration to get velocity
-                self.velocity[0] += (x_acc / 16384.0) * dt
-                self.velocity[1] += (y_acc / 16384.0) * dt
-                self.velocity[2] += (z_acc / 16384.0) * dt
-
-                # Integrate velocity to get position
-                self.position[0] += self.velocity[0] * dt
-                self.position[1] += self.velocity[1] * dt
-                self.position[2] += self.velocity[2] * dt
+                yaw, vx, vy, vz, px, py, pz = map(float, values)
 
                 # Create formatted string with labels
                 formatted_data = (
                     f"Yaw: {yaw:.2f}, "
-                    f"Velocity X: {self.velocity[0]:.2f}, "
-                    f"Velocity Y: {self.velocity[1]:.2f}, "
-                    f"Velocity Z: {self.velocity[2]:.2f}, "
-                    f"Position X: {self.position[0]:.2f}, "
-                    f"Position Y: {self.position[1]:.2f}, "
-                    f"Position Z: {self.position[2]:.2f}"
+                    f"Velocity X: {vx:.2f}, "
+                    f"Velocity Y: {vy:.2f}, "
+                    f"Velocity Z: {vz:.2f}, "
+                    f"Position X: {px:.2f}, "
+                    f"Position Y: {py:.2f}, "
+                    f"Position Z: {pz:.2f}"
                 )
                 return formatted_data
             else:
