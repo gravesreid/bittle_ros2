@@ -3,6 +3,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import serial
 import threading
+import time
 
 class SerialNode(Node):
     def __init__(self):
@@ -20,10 +21,18 @@ class SerialNode(Node):
 
         self.get_logger().info(f"Connected to {self.port}")
 
+        self.latest_data = None
+        self.data_lock = threading.Lock()
+
         # Start a thread to read IMU data
         self.read_thread = threading.Thread(target=self.read_data)
         self.read_thread.daemon = True
         self.read_thread.start()
+
+        # Start a thread to publish IMU data
+        self.publish_thread = threading.Thread(target=self.publish_data)
+        self.publish_thread.daemon = True
+        self.publish_thread.start()
 
     def read_data(self):
         while True:
@@ -31,10 +40,19 @@ class SerialNode(Node):
                 raw_data = self.ser.readline().decode('utf-8', errors='ignore').strip()
                 formatted_data = self.format_imu_data(raw_data)
                 if formatted_data:
+                    with self.data_lock:
+                        self.latest_data = formatted_data
+            time.sleep(0.01)  # Small delay to avoid busy-waiting
+
+    def publish_data(self):
+        while rclpy.ok():
+            if self.latest_data:
+                with self.data_lock:
                     msg = String()
-                    msg.data = formatted_data
+                    msg.data = self.latest_data
                     self.publisher_.publish(msg)
-            rclpy.spin_once(self, timeout_sec=0.1)
+                    self.latest_data = None
+            time.sleep(0.1)  # Adjust the sleep time as necessary
 
     def format_imu_data(self, data):
         try:
@@ -83,5 +101,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
