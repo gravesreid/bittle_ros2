@@ -28,11 +28,37 @@ class SerialNode(Node):
     def read_data(self):
         while True:
             if self.ser.in_waiting > 0:
-                data = self.ser.readline().decode('utf-8', errors='ignore').strip()
-                msg = String()
-                msg.data = data
-                self.publisher_.publish(msg)
+                raw_data = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                formatted_data = self.format_imu_data(raw_data)
+                if formatted_data:
+                    msg = String()
+                    msg.data = formatted_data
+                    self.publisher_.publish(msg)
             rclpy.spin_once(self, timeout_sec=0.1)
+
+    def format_imu_data(self, data):
+        try:
+            # Split the data based on tab character
+            values = data.split('\t')
+            # Check if we have the correct number of values
+            if len(values) == 7:
+                yaw, pitch, roll, x_acc, y_acc, z_acc, world_acc = values
+                # Create formatted string with labels
+                formatted_data = (
+                    f"Yaw: {yaw}, "
+                    f"Pitch: {pitch}, "
+                    f"Roll: {roll}, "
+                    f"X Acceleration: {x_acc}, "
+                    f"Y Acceleration: {y_acc}, "
+                    f"Z Acceleration: {z_acc}, "
+                    f"World Acceleration: {world_acc}"
+                )
+                return formatted_data
+            else:
+                return None
+        except Exception as e:
+            self.get_logger().error(f"Error formatting data: {e}")
+            return None
 
     def command_callback(self, msg):
         command = msg.data
@@ -57,3 +83,5 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
