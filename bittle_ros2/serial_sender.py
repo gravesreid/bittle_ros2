@@ -3,8 +3,7 @@ from rclpy.node import Node
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 import serial
-from bittle_msgs.msg import Command
-from bittle_msgs.msg import SerialResponse
+from bittle_msgs.msg import Command, SerialResponse
 import threading
 import time
 
@@ -28,14 +27,12 @@ class SerialSender(Node):
             callback_group=ReentrantCallbackGroup()
         )
         
-        # Publisher for serial responses
         self.response_publisher = self.create_publisher(
             SerialResponse,
             'imu_data_topic',
             10
         )
         
-        # Start a separate thread to read from serial port
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
         self.serial_thread.start()
@@ -74,6 +71,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 

@@ -1,18 +1,19 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from bittle_msgs.msg import Command
 
 class CommandPublisher(Node):
     def __init__(self):
         super().__init__('command_publisher')
-        self.publisher_ = self.create_publisher(String, 'command', 10)
+        self.publisher_ = self.create_publisher(Command, 'command', 10)
         self.get_logger().info('Command Publisher Node has been started.')
 
-    def publish_command(self, command):
-        msg = String()
-        msg.data = command
+    def publish_command(self, command, delay):
+        msg = Command()
+        msg.cmd = [command]
+        msg.delay = [delay]
         self.publisher_.publish(msg)
-        self.get_logger().info(f'Publishing: {msg.data}')
+        self.get_logger().info(f'Publishing: {msg.cmd} with delay {msg.delay}')
 
 def main(args=None):
     rclpy.init(args=args)
@@ -22,10 +23,10 @@ def main(args=None):
     try:
         while rclpy.ok():
             command = input("Enter command: ")
-            command += '\n'
             if command.lower() == 'q':
                 break
-            command_publisher.publish_command(command)
+            delay = float(input("Enter delay: "))
+            command_publisher.publish_command(command, delay)
     except KeyboardInterrupt:
         pass
     finally:
