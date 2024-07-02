@@ -22,7 +22,7 @@ class SerialSender(Node):
         
         self.subscription = self.create_subscription(
             Command,
-            'serial_command_topic',
+            'command',
             self.command_callback,
             10,
             callback_group=ReentrantCallbackGroup()
