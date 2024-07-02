@@ -50,7 +50,9 @@ class SerialSender(Node):
     def read_from_serial(self):
         while True:
             if self.ser.in_waiting > 0:
+                # Read the most recent line and flush the buffer
                 response = self.ser.readline().decode().strip()
+                self.ser.flushInput()  # Clear the input buffer
                 self.publish_response(response)
 
     def publish_response(self, response):
@@ -71,6 +73,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 
