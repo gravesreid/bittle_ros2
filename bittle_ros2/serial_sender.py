@@ -4,6 +4,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 import serial
 from bittle_msgs.msg import Command, SerialResponse
+from sensor_msgs.msg import Imu
 import threading
 import time
 
@@ -33,6 +34,12 @@ class SerialSender(Node):
             10
         )
         
+        self.imu_publisher = self.create_publisher(
+            Imu,
+            'imu',
+            10
+        )
+        
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
         self.serial_thread.start()
@@ -50,16 +57,41 @@ class SerialSender(Node):
     def read_from_serial(self):
         while True:
             if self.ser.in_waiting > 0:
-                # Read the most recent line and flush the buffer
                 response = self.ser.readline().decode().strip()
                 self.ser.flushInput()  # Clear the input buffer
                 self.publish_response(response)
+                self.publish_imu(response)
 
     def publish_response(self, response):
         msg = SerialResponse()
         msg.response = response
         self.response_publisher.publish(msg)
         self.get_logger().info(f"Published IMU data: {response}")
+
+    def publish_imu(self, response):
+        try:
+            parts = list(map(float, response.split('\t')))
+            if len(parts) < 6:
+                self.get_logger().error("Received incomplete IMU data")
+                return
+            
+            imu_msg = Imu()
+            imu_msg.header.stamp = self.get_clock().now().to_msg()
+            imu_msg.header.frame_id = 'imu_link'
+
+            # Assuming yaw, pitch, roll are in degrees, and converting to radians
+            imu_msg.orientation.x = parts[0]  # yaw
+            imu_msg.orientation.y = parts[1]  # pitch
+            imu_msg.orientation.z = parts[2]  # roll
+
+            imu_msg.linear_acceleration.x = parts[3]
+            imu_msg.linear_acceleration.y = parts[4]
+            imu_msg.linear_acceleration.z = parts[5]
+
+            self.imu_publisher.publish(imu_msg)
+            self.get_logger().info(f"Published IMU sensor data: {response}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to parse IMU data: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
@@ -73,6 +105,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 

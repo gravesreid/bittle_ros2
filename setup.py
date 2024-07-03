@@ -41,7 +41,8 @@ setup(
             'photo_service = bittle_ros2.photo_service:main',
             'photo_client = bittle_ros2.photo_client:main',
             'gpt_driver = bittle_ros2.gpt_driver:main',
-            'command_publisher = bittle_ros2.command_publisher:main'
+            'command_publisher = bittle_ros2.command_publisher:main',
+            'yolo_node = bittle_ros2.yolo_node:main',
         ],
     },
 )
