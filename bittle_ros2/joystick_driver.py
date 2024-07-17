@@ -10,7 +10,7 @@ import math
 from std_msgs.msg import String
 from sensor_msgs.msg import Joy  # Import Joy message type
 
-dir_dict = {1: 'kwkF', -1: 'kbk', 2: 'kwkL', 3: 'kwkR', 0: 'krest', 4: 'ksit', 5: 'kbuttUp',  6: 'kvtL', 7: 'kvtR', 8: 'kpherL',9: 'kpherR', 10: 'kcollect'}
+dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'krest', 4: 'ksit', 5: 'kbuttUp',  6: 'kvtL', 7: 'kvtR', 8: 'kphL',9: 'kphF', 10: 'kphR'}
 
 class Driver(Node):
 
@@ -49,7 +49,7 @@ class Driver(Node):
         elif buttons[0] == 1:
             dir = 9
         elif buttons[1] == 1:
-            dir = 4
+            dir = 10
         elif buttons[2] == 1:
             dir = 5
         elif buttons[3] == 1:
@@ -59,7 +59,7 @@ class Driver(Node):
         elif buttons[5] == 1:
             dir = 7
         elif buttons[9] == 1:
-            dir = 10
+            dir = 4
         else:
             dir = 0
 

@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import threading
+import apriltag
 
 # Function to draw grid lines on the image
 def draw_grid(img, line_color=(0, 255, 0), thickness=1, type_=cv2.LINE_AA, pxstep=180, pystep=145):
@@ -28,7 +29,7 @@ class YoloDetectionNode(Node):
         self.bridge = CvBridge()
 
         # Load YOLOv8 model
-        self.model = YOLO('/home/reid/Projects/Bittle/Bittle_LLM/yolo/runs/detect/train2/weights/best.pt')  # Replace with your custom model path if needed
+        self.model = YOLO('/home/reid/Projects/Bittle/Bittle_LLM/yolo/runs/detect/train3/weights/best.pt')  # Replace with your custom model path if needed
 
         self.colors = {
             0: (255, 0, 0),   # Color for class 0 (e.g., red)
@@ -40,9 +41,23 @@ class YoloDetectionNode(Node):
         self.pystep = 120
 
         self.cap = cv2.VideoCapture(0)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         if not self.cap.isOpened():
             self.get_logger().error("Error: Could not open webcam.")
             return
+        
+        # april tag stuff
+        self.detector = apriltag.Detector()
+        self.tag_size = 0.0275  # 27.5 mm
+
+        self.camera_matrix = np.array([[2.51424135e+03, 0.00000000e+00, 3.04989934e+02],
+            [0.00000000e+00, 2.51320448e+03, 2.35529666e+02],
+            [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+        self.dist_coeff = np.array([
+            [ 3.39495079e+00, -1.47533299e+02, -4.24259153e-03, -1.07502528e-02,
+            5.27406271e+02]])
+        
 
         # Start the detection thread
         self.detection_thread = threading.Thread(target=self.run)
@@ -56,8 +71,43 @@ class YoloDetectionNode(Node):
                 self.get_logger().error("Error: Failed to capture image.")
                 break
 
+            # april tag detection
+            cX, cY, yaw = None, None, None
+
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            tag_results = self.detector.detect(gray)
+            for tag in tag_results:
+                (ptA, ptB, ptC, ptD) = tag.corners
+                ptA = (int(ptA[0]), int(ptA[1]))
+                ptB = (int(ptB[0]), int(ptB[1]))
+                ptC = (int(ptC[0]), int(ptC[1]))
+                ptD = (int(ptD[0]), int(ptD[1]))
+                cv2.line(frame, ptA, ptB, (0, 255, 0), 2)
+                cv2.line(frame, ptB, ptC, (0, 255, 0), 2)
+                cv2.line(frame, ptC, ptD, (0, 255, 0), 2)
+                cv2.line(frame, ptD, ptA, (0, 255, 0), 2)
+                (cX, cY) = (int(tag.center[0]), int(tag.center[1]))
+                cv2.circle(frame, (cX, cY), 5, (0, 0, 255), -1)
+                tagFamily = tag.tag_family.decode("utf-8")
+                tagID = tag.tag_id
+                object_points = np.array([
+                    [-self.tag_size / 2, -self.tag_size / 2, 0],
+                    [self.tag_size / 2, -self.tag_size / 2, 0],
+                    [self.tag_size / 2, self.tag_size / 2, 0],
+                    [-self.tag_size / 2, self.tag_size / 2, 0]
+                ])
+                image_points = np.array([ptA, ptB, ptC, ptD], dtype="double")
+                _, rvec, tvec = cv2.solvePnP(object_points, image_points, self.camera_matrix, self.dist_coeff)
+                rotation_matrix, _ = cv2.Rodrigues(rvec)
+
+                position = tvec.flatten()
+                orientation = rotation_matrix.flatten()
+                yaw = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])*180/np.pi
+                yaw = -np.float64(yaw)
+
             # Draw grid on the frame
             draw_grid(frame, pxstep=self.pxstep, pystep=self.pystep)
+            print(f"Frame shape: {frame.shape}")
             
             # Create a copy of the frame with grids for saving without bounding boxes
             clean_frame_with_grids = frame.copy()
@@ -70,9 +120,13 @@ class YoloDetectionNode(Node):
 
             msg = Detection()
             msg.results = []
-            msg.xywhn_list = []
+            msg.center = []
             msg.grid_squares = []
             msg.class_names = []
+            msg.april_tag_location = []
+            if cX is not None and cY is not None:
+                msg.april_tag_location.extend([cX, cY])
+                msg.april_tag_orientation = yaw
 
             # Process YOLOv8 results
             for result in results:
@@ -96,7 +150,7 @@ class YoloDetectionNode(Node):
                     
                     # Populate the Detection message
                     msg.results.append(class_id)
-                    msg.xywhn_list.extend([center_x, center_y, x2-x1, y2-y1])
+                    msg.center.extend([center_x, center_y])
                     msg.grid_squares.append(grid_square)
                     msg.class_names.append(self.model.names[class_id])
 
