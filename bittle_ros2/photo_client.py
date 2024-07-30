@@ -9,6 +9,8 @@ import base64
 import threading
 import time
 import json
+from bittle_msgs.msg import Detection
+from rclpy.callback_groups import ReentrantCallbackGroup
 
 api_loc = "/home/reid/ros2_ws/gpt_key.txt"
 
@@ -22,6 +24,13 @@ class PhotoClient(Node):
 
     def __init__(self):
         super().__init__('photo_client_node')
+        self.detection_subscription = self.create_subscription(
+            Detection,
+            'detection',
+            self.detection_callback,
+            10,
+            callback_group=ReentrantCallbackGroup()
+        )
         self.client = self.create_client(CapturePhoto, 'capture_photo')
         self.command_client = self.create_client(ExecuteCommand, 'execute_command')
         time.sleep(10)  # Add a delay to ensure the services have enough time to start
@@ -31,6 +40,21 @@ class PhotoClient(Node):
         self.request = CapturePhoto.Request()
         self.bridge = CvBridge()
         self.send_request()
+        with open("action_prompt.txt", "r") as f:
+            self.action_prompt = f.read()  
+
+    def detection_callback(self, msg):
+        self.detections = []
+        self.current_heading = msg.april_tag_orientation
+        self.current_position = msg.april_tag_location
+        centers = list(zip(*(iter(msg.center),) * 2))
+
+        for class_name, grid_square, center in zip(msg.class_names, msg.grid_squares, centers):
+            center_x, center_y = center[0], center[1]
+            self.detections.append((class_name, grid_square, (center_x, center_y)))
+        
+        self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
+        self.get_logger().info(f'Received detections: {self.detections}')
 
     def send_request(self):
         self.get_logger().info('Sending request to capture photo')
@@ -81,7 +105,7 @@ class PhotoClient(Node):
         messages = [
             {
                 "role": "user",
-                "content": "You are a robot and need to go to where the tile meets the carpet, then turn around and go back to where you started, then rest. Choose a command to execute from rest, forward, back, spin in place left or right, and turn left or right, eg: rest, fwd, spinleft, spinright, left, right, or back",
+                "content": self,
             },
             {
                 "role": "function",

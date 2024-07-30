@@ -1,39 +1,44 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionServer
+from bittle_msgs.action import MoveToGrid
+from bittle_msgs.msg import Detection, Command
 from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-from bittle_msgs.msg import Command, Detection
-from sensor_msgs.msg import Imu
-import threading
-import time
 import numpy as np
 
-class CommandPublisher(Node):
+
+class MoveToGridServer(Node):
     def __init__(self):
-        super().__init__('command_publisher')
-        self.publisher_ = self.create_publisher(Command, 'command', 10)
+        super().__init__('move_to_grid_server')
+        self.callback_group = ReentrantCallbackGroup()
+        self._action_server = ActionServer(
+            self,
+            MoveToGrid,
+            'move_to_grid',
+            self.execute_callback,
+            callback_group=self.callback_group
+        )
         self.detection_subscription = self.create_subscription(
             Detection,
             'detection',
             self.detection_callback,
             10,
-            callback_group=ReentrantCallbackGroup()
+            callback_group=self.callback_group
         )
-        #self.imu_subscription = self.create_subscription(
-        #    Imu,
-        #    'imu',
-        #    self.imu_callback,
-        #    10,
-        #    callback_group=ReentrantCallbackGroup()
-        #)
-        self.get_logger().info('Command Publisher Node has been started.')
+        self.command_publisher = self.create_publisher(
+            Command,
+            'command',
+              10,
+              callback_group=self.callback_group
+        )
+        self.get_logger().info('MoveToGridServer has been started.')
 
         self.target_square = None
         self.current_heading = None
         self.current_position = None
+        self.error = None
         self.detections = []
-        self.command_queue = []
-        self.previous_robot_position = None
+        self.current_cmd = 'Krest'
         self.crawl_threshold = 10
         self.turn_threshold = 40
 
@@ -44,28 +49,18 @@ class CommandPublisher(Node):
             "D1": (80, 420), "D2": (240, 420), "D3": (400, 420), "D4": (560, 420)
         }
 
-    def publish_command(self, command, delay):
-        msg = Command()
-        msg.cmd = [command]
-        msg.delay = [delay]
-        self.publisher_.publish(msg)
-        self.get_logger().info(f'Publishing: {msg.cmd} with delay {msg.delay}')
-
-    def detection_callback(self, msg):
-        self.current_heading = msg.april_tag_orientation
-        self.current_position = msg.april_tag_location
-        centers = list(zip(*(iter(msg.center),) * 2))
-
-        for class_name, grid_square, center in zip(msg.class_names, msg.grid_squares, centers):
-            center_x, center_y = center[0], center[1]
-            self.detections.append((class_name, grid_square, (center_x, center_y)))
-        
-        self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
-        self.get_logger().info(f'Received detections: {self.detections}')
-
-        if self.target_square:
-            self.navigate_to_target()
-
+    def execute_callback(self, goal_handle):
+        self.get_logger().info('Executing goal...')
+        feedback_msg = self.current_position
+        self.target_square = goal_handle.request.target_square
+        self.get_logger().info(f'Target square: {self.target_square}')
+        if self.target_square is not None:
+            if self.error is None or self.error > 20:
+                self.navigate_to_target()
+            else:
+                goal_handle.succeed()
+        result = feedback_msg
+        return result
 
     def navigate_to_target(self):
         if self.current_heading is None:
@@ -94,6 +89,7 @@ class CommandPublisher(Node):
         dx, dy = direction_vector
         self.get_logger().info(f'dx: {dx}, dy: {dy}')
         error = np.sqrt(dx**2 + dy**2)
+        self.error = error
         self.get_logger().info(f'Error: {error}')
         Txhat = dx / error
         Tyhat = dy / error
@@ -107,11 +103,12 @@ class CommandPublisher(Node):
         theta = np.arccos(Txhat * Rxhat + Tyhat * Ryhat) * 180 / np.pi
         self.get_logger().info(f'Theta: {theta}')
         self.get_logger().info(f'Current heading: {self.current_heading}')
-        if error < 20:
+        if error > 20:
+            self.adjust_heading(theta)
+        else:
             self.get_logger().info('Reached target square.')
             self.publish_command('krest',0.0)
-        else:
-            self.adjust_heading(theta)
+            return
 
 
     def adjust_heading(self, theta):
@@ -128,25 +125,37 @@ class CommandPublisher(Node):
             else:
                 self.publish_command('kcrR',0.5)
 
+    def publish_command(self, command, delay):
+        if command != self.current_cmd:
+            self.current_cmd = command
+            msg = Command()
+            msg.cmd = [command]
+            msg.delay = [delay]
+            self.command_publisher.publish(msg)
+            self.get_logger().info(f'Publishing: {msg.cmd} with delay {msg.delay}')
+        else:
+            self.get_logger().info(f'Command already published: {command}')
+
+    def detection_callback(self, msg):
+        self.current_heading = msg.april_tag_orientation
+        self.current_position = msg.april_tag_location
+        centers = list(zip(*(iter(msg.center),) * 2))
+
+        for class_name, grid_square, center in zip(msg.class_names, msg.grid_squares, centers):
+            center_x, center_y = center[0], center[1]
+            self.detections.append((class_name, grid_square, (center_x, center_y)))
+        
+        self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
+        self.get_logger().info(f'Received detections: {self.detections}')
+
+
+
 
 def main(args=None):
     rclpy.init(args=args)
-
-    command_publisher = CommandPublisher()
-
-    target_square = input("Enter target grid square (e.g., A1): ").strip().upper()
-    command_publisher.target_square = target_square
-
-    try:
-        executor = MultiThreadedExecutor()
-        rclpy.spin(command_publisher, executor=executor)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        command_publisher.destroy_node()
-        rclpy.shutdown()
+    move_to_grid_server = MoveToGridServer()
+    rclpy.spin(move_to_grid_server)
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-
-

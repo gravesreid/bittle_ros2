@@ -44,6 +44,8 @@ setup(
             'command_publisher = bittle_ros2.command_publisher:main',
             'yolo_node = bittle_ros2.yolo_node:main',
             'robot_to_grid_node = bittle_ros2.robot_to_grid_node:main',
+            'move_to_grid_server = bittle_ros2.move_to_grid_server:main',
+            'gpt_client = bittle_ros2.gpt_client:main',
         ],
     },
 )
