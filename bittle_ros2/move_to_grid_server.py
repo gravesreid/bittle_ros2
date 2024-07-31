@@ -6,7 +6,6 @@ from bittle_msgs.msg import Detection, Command
 from rclpy.callback_groups import ReentrantCallbackGroup
 import numpy as np
 
-
 class MoveToGridServer(Node):
     def __init__(self):
         super().__init__('move_to_grid_server')
@@ -28,8 +27,8 @@ class MoveToGridServer(Node):
         self.command_publisher = self.create_publisher(
             Command,
             'command',
-              10,
-              callback_group=self.callback_group
+            10,
+            callback_group=self.callback_group
         )
         self.get_logger().info('MoveToGridServer has been started.')
 
@@ -37,7 +36,7 @@ class MoveToGridServer(Node):
         self.current_heading = None
         self.current_position = None
         self.error = None
-        self.detections = []
+        self.detections = None
         self.current_cmd = 'Krest'
         self.crawl_threshold = 10
         self.turn_threshold = 40
@@ -51,15 +50,32 @@ class MoveToGridServer(Node):
 
     def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
-        feedback_msg = self.current_position
         self.target_square = goal_handle.request.target_square
         self.get_logger().info(f'Target square: {self.target_square}')
-        if self.target_square is not None:
-            if self.error is None or self.error > 20:
-                self.navigate_to_target()
-            else:
+
+        feedback_msg = MoveToGrid.Feedback()
+        if self.target_square not in self.grid_centers:
+            self.get_logger().error(f'Target square {self.target_square} not found in grid centers.')
+            goal_handle.abort()
+            return MoveToGrid.Result()
+
+        while self.error is None or self.error > 20:
+            self.navigate_to_target()
+            if self.error is not None and self.error <= 20:
                 goal_handle.succeed()
-        result = feedback_msg
+                result = MoveToGrid.Result()
+                result.final_position = self.current_position
+                self.get_logger().info(f'Goal succeeded, final position: {result.final_position}')
+                return result
+
+            feedback_msg.current_position = self.current_position
+            goal_handle.publish_feedback(feedback_msg)
+            rclpy.spin_once(self, timeout_sec=1)
+
+        goal_handle.succeed()
+        result = MoveToGrid.Result()
+        result.final_position = self.current_position
+        self.get_logger().info(f'Goal succeeded, final position: {result.final_position}')
         return result
 
     def navigate_to_target(self):
@@ -107,23 +123,22 @@ class MoveToGridServer(Node):
             self.adjust_heading(theta)
         else:
             self.get_logger().info('Reached target square.')
-            self.publish_command('krest',0.0)
+            self.publish_command('krest', 0.0)
             return
-
 
     def adjust_heading(self, theta):
         if abs(theta) < self.crawl_threshold:
-            self.publish_command('kcrF',0.0)
+            self.publish_command('kcrF', 0.0)
         elif abs(theta) > self.turn_threshold:
             if theta > 0:
-                self.publish_command('kvtL',0.5)
+                self.publish_command('kvtL', 0.5)
             else:
-                self.publish_command('kvtR',0.5)
+                self.publish_command('kvtR', 0.5)
         elif self.turn_threshold > abs(theta) > self.crawl_threshold:
             if theta > 0:
-                self.publish_command('kcrL',0.5)
+                self.publish_command('kcrL', 0.5)
             else:
-                self.publish_command('kcrR',0.5)
+                self.publish_command('kcrR', 0.5)
 
     def publish_command(self, command, delay):
         if command != self.current_cmd:
@@ -140,15 +155,16 @@ class MoveToGridServer(Node):
         self.current_heading = msg.april_tag_orientation
         self.current_position = msg.april_tag_location
         centers = list(zip(*(iter(msg.center),) * 2))
+        detections = []
 
         for class_name, grid_square, center in zip(msg.class_names, msg.grid_squares, centers):
             center_x, center_y = center[0], center[1]
-            self.detections.append((class_name, grid_square, (center_x, center_y)))
+            detections.append((class_name, grid_square, (center_x, center_y)))
+
+        self.detections = detections
         
         self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
         self.get_logger().info(f'Received detections: {self.detections}')
-
-
 
 
 def main(args=None):

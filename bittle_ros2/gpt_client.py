@@ -14,6 +14,7 @@ from bittle_msgs.action import MoveToGrid
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.action import ActionClient
 from sensor_msgs.msg import Image
+import re 
 
 api_loc = "/home/reid/ros2_ws/gpt_key.txt"
 
@@ -23,7 +24,6 @@ if not os.path.isfile(api_loc):
 with open(api_loc, 'r') as f:
     api_key = f.readline().strip()
 
-
 class GPT_Client(Node):
 
     def __init__(self):
@@ -31,9 +31,7 @@ class GPT_Client(Node):
         self._action_client = ActionClient(
             self,
             MoveToGrid,
-            'move_to_grid',
-            self.send_goal_grid,
-            callback_group=ReentrantCallbackGroup()
+            'move_to_grid'
         )
         self.detection_subscription = self.create_subscription(
             Detection,
@@ -56,10 +54,10 @@ class GPT_Client(Node):
         self.current_position = None
         self.detections = []
         self.image_path = 'input_image.jpg'
+        self.current_image = None
 
     def send_goal_grid(self):
-        current_image = self.image_callback()
-        cv2.imwrite(self.image_path, current_image)
+        cv2.imwrite(self.image_path, self.current_image)
         action_prompt = self.action_prompt
         if self.detections:
             # add current detections to action prompt
@@ -67,14 +65,12 @@ class GPT_Client(Node):
                 class_name, grid_square, center = detection
                 action_prompt += f" {class_name} at {grid_square} with center {center}"
         goal_msg = MoveToGrid.Goal()
-        goal_msg.target_square = self.get_caption(action_prompt)
+        goal_msg.goal_cell = self.get_caption(action_prompt)
 
         self._action_client.wait_for_server()
         self._send_goal_future = self._action_client.send_goal_async(goal_msg)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
-        return self._action_client.send_goal_async(goal_msg)
-    
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
@@ -98,40 +94,19 @@ class GPT_Client(Node):
             center_x, center_y = center[0], center[1]
             self.detections.append((class_name, grid_square, (center_x, center_y)))
 
-
         self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
         self.get_logger().info(f'Received detections: {self.detections}')
 
     def image_callback(self, msg):
         bridge = CvBridge()
-        image = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-        cv2.imwrite("input_image.jpg", image)
-        return image
+        self.current_image = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        cv2.imwrite("input_image.jpg", self.current_image)
+        self.send_goal_grid()
 
     def get_caption(self, action_prompt):
         client = OpenAI(api_key=api_key)
         with open(self.image_path, "rb") as f:
             encoded_image = base64.b64encode(f.read()).decode('utf-8')
-
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "move_to_grid_square",
-                    "description": "Move the robot to the specified grid square",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "cell": {
-                                "type": "string",
-                                "description": "The cell to move to, e.g. 'A1'",
-                            },
-                        },
-                        "required": ["cell"],
-                    },
-                }
-            }
-        ]
 
         messages = [
             {
@@ -148,23 +123,37 @@ class GPT_Client(Node):
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
-            tools=tools,
-            tool_choice="auto",
             max_tokens=300
         )
 
         # Extract command from tool call response
-        tool_calls = completion.choices[0].message.tool_calls
-        self.get_logger().info(f"Message: {completion.choices[0].message.content}")
-        if tool_calls:
-                for tool_call in tool_calls:
-                    function_args = json.loads(tool_call.function.arguments)
-                    self.get_logger().info(f"Function args: {function_args}")
-                    cell = function_args["cell"]
-                    self.get_logger().info(f"Command received: {cell}")
-                    self.send_goal_grid(cell)
+
+
+        message = completion.choices[0].message.content
+        # Find the first occurrence of the pattern [RC]
+        self.get_logger().info(f"Message: {message}")
+        start_index = message.find("[")
+        end_index = message.find("]", start_index)
+
+        goal_cell = None
+
+        if start_index != -1 and end_index != -1:
+            # Extract the content between the brackets
+            goal_cell = message[start_index + 1:end_index]
+            
+            # Validate the content
+            if len(goal_cell) == 2 and goal_cell[0] in "ABCD" and goal_cell[1] in "1234":
+                print(f"Extracted goal cell type: {goal_cell.__class__}")
+                self.get_logger().info(f"Extracted goal cell: {goal_cell}")
+            else:
+                self.get_logger().info("Pattern found but does not match expected format [RC].")
+
+        if goal_cell:
+                self.get_logger().info(f"Goal cell: {goal_cell}")
+                return f"{goal_cell}"
         else:
             self.get_logger().error("No command received from model")
+            return ""
 
 def main(args=None):
     rclpy.init(args=args)
