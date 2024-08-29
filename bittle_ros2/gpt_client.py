@@ -48,7 +48,7 @@ class GPT_Client(Node):
             callback_group=ReentrantCallbackGroup()
         )
         
-        with open("action_prompt.txt", "r") as f:
+        with open("action_prompt_0.txt", "r") as f:
             self.action_prompt = f.read()
         self.current_heading = None
         self.current_position = None

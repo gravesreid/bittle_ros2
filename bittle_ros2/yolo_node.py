@@ -29,7 +29,7 @@ class YoloDetectionNode(Node):
         self.bridge = CvBridge()
 
         # Load YOLOv8 model
-        self.model = YOLO('/home/reid/Projects/Bittle/Bittle_LLM/yolo/runs/detect/train3/weights/best.pt')  # Replace with your custom model path if needed
+        self.model = YOLO('/home/reid/Projects/Bittle/Bittle_LLM/yolo/runs/detect/train6/weights/best.pt')  # Replace with your custom model path if needed
 
         self.colors = {
             0: (255, 0, 0),   # Color for class 0 (e.g., red)

@@ -60,8 +60,6 @@ class CommandPublisher(Node):
             center_x, center_y = center[0], center[1]
             self.detections.append((class_name, grid_square, (center_x, center_y)))
         
-        self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
-        self.get_logger().info(f'Received detections: {self.detections}')
 
         if self.target_square:
             self.navigate_to_target()
@@ -93,18 +91,22 @@ class CommandPublisher(Node):
     def move_towards_target(self, direction_vector):
         dx, dy = direction_vector
         self.get_logger().info(f'dx: {dx}, dy: {dy}')
-        error = np.sqrt(dx**2 + dy**2)
+        epsilon = 1e-6
+        error = np.sqrt(dx**2 + dy**2) + epsilon
         self.get_logger().info(f'Error: {error}')
         Txhat = dx / error
         Tyhat = dy / error
         Rxhat = np.cos(self.current_heading * np.pi / 180)
         Ryhat = np.sin(self.current_heading * np.pi / 180)
         TdotR = Txhat * Rxhat + Tyhat * Ryhat
+        TcrossR = Txhat * Ryhat - Tyhat * Rxhat
         magnitude_T = np.sqrt(Txhat**2 + Tyhat**2)
         magnitude_R = np.sqrt(Rxhat**2 + Ryhat**2)
         self.get_logger().info(f'TdotR: {TdotR}, magnitude_T: {magnitude_T}, magnitude_R: {magnitude_R}')
         self.get_logger().info(f'Txhat: {Txhat}, Tyhat: {Tyhat}, Rxhat: {Rxhat}, Ryhat: {Ryhat}')
-        theta = np.arccos(Txhat * Rxhat + Tyhat * Ryhat) * 180 / np.pi
+        theta = np.arccos(np.clip(TdotR, -1.0, 1.0)) * 180 / np.pi
+        if TcrossR < 0:
+            theta = -theta
         self.get_logger().info(f'Theta: {theta}')
         self.get_logger().info(f'Current heading: {self.current_heading}')
         if error < 20:
@@ -118,12 +120,12 @@ class CommandPublisher(Node):
         if abs(theta) < self.crawl_threshold:
             self.publish_command('kcrF',0.0)
         elif abs(theta) > self.turn_threshold:
-            if theta > 0:
+            if theta < 0:
                 self.publish_command('kvtL',0.5)
             else:
                 self.publish_command('kvtR',0.5)
         elif self.turn_threshold > abs(theta) > self.crawl_threshold:
-            if theta > 0:
+            if theta < 0:
                 self.publish_command('kcrL',0.5)
             else:
                 self.publish_command('kcrR',0.5)

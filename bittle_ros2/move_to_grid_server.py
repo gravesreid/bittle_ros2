@@ -50,7 +50,7 @@ class MoveToGridServer(Node):
 
     def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
-        self.target_square = goal_handle.request.target_square
+        self.target_square = goal_handle.request.goal_cell
         self.get_logger().info(f'Target square: {self.target_square}')
 
         feedback_msg = MoveToGrid.Feedback()
@@ -163,8 +163,6 @@ class MoveToGridServer(Node):
 
         self.detections = detections
         
-        self.get_logger().info(f'class names: {msg.class_names}, grid squares: {msg.grid_squares}, Centers: {centers}')
-        self.get_logger().info(f'Received detections: {self.detections}')
 
 
 def main(args=None):
