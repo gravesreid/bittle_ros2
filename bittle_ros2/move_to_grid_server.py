@@ -104,27 +104,29 @@ class MoveToGridServer(Node):
     def move_towards_target(self, direction_vector):
         dx, dy = direction_vector
         self.get_logger().info(f'dx: {dx}, dy: {dy}')
-        error = np.sqrt(dx**2 + dy**2)
-        self.error = error
+        epsilon = 1e-6
+        error = np.sqrt(dx**2 + dy**2) + epsilon
         self.get_logger().info(f'Error: {error}')
         Txhat = dx / error
         Tyhat = dy / error
         Rxhat = np.cos(self.current_heading * np.pi / 180)
         Ryhat = np.sin(self.current_heading * np.pi / 180)
         TdotR = Txhat * Rxhat + Tyhat * Ryhat
+        TcrossR = Txhat * Ryhat - Tyhat * Rxhat
         magnitude_T = np.sqrt(Txhat**2 + Tyhat**2)
         magnitude_R = np.sqrt(Rxhat**2 + Ryhat**2)
         self.get_logger().info(f'TdotR: {TdotR}, magnitude_T: {magnitude_T}, magnitude_R: {magnitude_R}')
         self.get_logger().info(f'Txhat: {Txhat}, Tyhat: {Tyhat}, Rxhat: {Rxhat}, Ryhat: {Ryhat}')
-        theta = np.arccos(Txhat * Rxhat + Tyhat * Ryhat) * 180 / np.pi
+        theta = np.arccos(np.clip(TdotR, -1.0, 1.0)) * 180 / np.pi
+        if TcrossR < 0:
+            theta = -theta
         self.get_logger().info(f'Theta: {theta}')
         self.get_logger().info(f'Current heading: {self.current_heading}')
-        if error > 20:
-            self.adjust_heading(theta)
-        else:
+        if error < 20:
             self.get_logger().info('Reached target square.')
-            self.publish_command('krest', 0.0)
-            return
+            self.publish_command('krest',0.0)
+        else:
+            self.adjust_heading(theta)
 
     def adjust_heading(self, theta):
         if abs(theta) < self.crawl_threshold:
