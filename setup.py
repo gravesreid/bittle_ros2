@@ -46,6 +46,8 @@ setup(
             'robot_to_grid_node = bittle_ros2.robot_to_grid_node:main',
             'move_to_grid_server = bittle_ros2.move_to_grid_server:main',
             'gpt_client = bittle_ros2.gpt_client:main',
+            'webvid_publisher = bittle_ros2.webvid_publisher:main',
+            'webvid_subscriber = bittle_ros2.webvid_subscriber:main',
         ],
     },
 )
