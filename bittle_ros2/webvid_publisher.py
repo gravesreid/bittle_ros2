@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import SingleThreadedExecutor
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
@@ -8,9 +9,9 @@ class MJPEGStreamPublisher(Node):
     def __init__(self):
         super().__init__('mjpeg_stream_publisher')
         self.bridge = CvBridge()
-        self.publisher_ = self.create_publisher(Image, '/camera/stream', 1)
-        self.timer = self.create_timer(0.1, self.timer_callback)  # Adjust as needed
-        self.stream_url = "http://192.168.1.44:8000/stream.mjpg"
+        self.publisher_ = self.create_publisher(Image, '/camera/stream', 30)
+        self.timer = self.create_timer(0.01, self.timer_callback)  # Adjust as needed
+        self.stream_url = "http://192.168.1.205:8000/stream.mjpg"
         self.cap = cv2.VideoCapture(self.stream_url)
         
         if not self.cap.isOpened():
@@ -35,9 +36,11 @@ class MJPEGStreamPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MJPEGStreamPublisher()
+    executor = SingleThreadedExecutor()  # Use single-threaded executor
+    executor.add_node(node)
     
     try:
-        rclpy.spin(node)
+        executor.spin()  # Spin using the executor
     except KeyboardInterrupt:
         pass
     finally:
@@ -46,3 +49,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

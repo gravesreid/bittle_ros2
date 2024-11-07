@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import SingleThreadedExecutor
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
@@ -9,7 +10,7 @@ class StreamSubscriber(Node):
         super().__init__('stream_subscriber')
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(
-            Image, '/camera/stream', self.listener_callback, 1)
+            Image, '/camera/stream', self.listener_callback, 30)
         cv2.namedWindow("MJPEG Stream", cv2.WINDOW_NORMAL)
 
     def listener_callback(self, data):
@@ -29,9 +30,11 @@ class StreamSubscriber(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = StreamSubscriber()
+    executor = SingleThreadedExecutor()  # Use single-threaded executor
+    executor.add_node(node)
 
     try:
-        rclpy.spin(node)
+        executor.spin()  # Spin using the executor
     except KeyboardInterrupt:
         pass
     finally:
@@ -41,3 +44,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
