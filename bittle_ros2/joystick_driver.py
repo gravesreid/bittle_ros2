@@ -10,7 +10,7 @@ import math
 from std_msgs.msg import String
 from sensor_msgs.msg import Joy  # Import Joy message type
 
-dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'krest', 4: 'ksit', 5: 'kbuttUp',  6: 'kvtL', 7: 'kvtR', 8: 'kphL',9: 'kphF', 10: 'kphR'}
+dir_dict = {1: 'kcrArmF', -1: 'kbk', 2: 'kcrArmL', 3: 'kcrArmR', -2: 'krest', 'x': 'ksit', 'a': 'ktrArmF',  'b': 'kpick', 'y': 'kput', 'l': 'kvtArmL','r': 'kvtArmR', 'sel': 'kpickF', 'start':'kpickD'}
 
 class Driver(Node):
 
@@ -47,21 +47,23 @@ class Driver(Node):
         elif axes[0] == 1:
             dir = 2
         elif buttons[0] == 1:
-            dir = 9
+            dir = 'x'
         elif buttons[1] == 1:
-            dir = 10
+            dir = 'a'
         elif buttons[2] == 1:
-            dir = 5
+            dir = 'b'
         elif buttons[3] == 1:
-            dir = 8
+            dir = 'y'
         elif buttons[4] == 1:
-            dir = 6
+            dir = 'l'
         elif buttons[5] == 1:
-            dir = 7
+            dir = 'r'
         elif buttons[9] == 1:
-            dir = 4
+            dir = 'sel'
+        elif buttons[10] == 1:
+            dir = 'start'
         else:
-            dir = 0
+            dir = -2
 
         if self.dir != dir:
             self.wrapper([dir_dict[dir], 0])
