@@ -10,7 +10,7 @@ import math
 from std_msgs.msg import String
 from sensor_msgs.msg import Joy  # Import Joy message type
 
-dir_dict = {1: 'kcrArmF', -1: 'kbk', 2: 'kcrArmL', 3: 'kcrArmR', -2: 'krest', 'x': 'ksit', 'a': 'ktrArmF',  'b': 'kpick', 'y': 'kput', 'l': 'kvtArmL','r': 'kvtArmR', 'sel': 'kpickF', 'start':'kpickD'}
+dir_dict = {1: 'kwkArmF', -1: 'kbk', 2: 'kwkArmL', 3: 'kwkArmR', -2: 'kbalance', 'x': 'kpickF', 'a': 'kpickD',  'b': 'kputF', 'y': 'kputD', 'l': 'kvtL','r': 'kvtR', 'sel': 'kpickF', 'start':'kpickD'}
 
 class Driver(Node):
 
