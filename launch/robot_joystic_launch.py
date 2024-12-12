@@ -10,17 +10,9 @@ def generate_launch_description():
             output='screen'
         ),
         Node(
-            package='v4l2_camera',
-            executable='v4l2_camera_node',
-            name='camera',
+            package='joy',
+            executable='joy_node',
+            name='joy_node',
             output='screen',
-            parameters=[
-                {'video_device': '/dev/video0'},
-                {'output_encoding': 'rgb8'},
-                {'pixel_format': 'YUYV'},
-                {'image_size': [640,480]},
-                {'io_method': 'mmap'},
-                {'image_raw.jpeg_quality' : 50}
-            ]
         )
     ])
