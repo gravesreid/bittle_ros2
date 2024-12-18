@@ -32,6 +32,9 @@ setup(
             'serial_sender = bittle_ros2.serial_sender:main',
             'webvid_publisher = bittle_ros2.webvid_publisher:main',
             'webvid_subscriber = bittle_ros2.webvid_subscriber:main',
+            'overhead_cam = bittle_ros2.overhead_cam:main',
+            'yolo_node = bittle_ros2.yolo_node:main',
+            'test_topic = bittle_ros2.test_topic:main',
         ],
     },
 )

@@ -18,7 +18,7 @@ class ImageSubscriber(Node):
         self.bridge = CvBridge()
 
         # Load YOLO model
-        self.model = YOLO('/home/reid/yolo/black_and_white_pheromones-1/best.pt')  # Update the path to your model
+        self.model = YOLO('/home/reid/projects/bittle/autonomous-bittle/code_on_desktop/yolo/runs/detect/train3/weights/best.pt')  # Update the path to your model
         self.model.conf = 0.5  # Set confidence threshold
         
         # Create detection publisher
@@ -48,7 +48,7 @@ class ImageSubscriber(Node):
 class DetectionPublisher(Node):
     def __init__(self):
         super().__init__('detection_publisher')
-        self.publisher = self.create_publisher(Detection, 'detection_topic', 10)
+        self.publisher = self.create_publisher(Detection, '/detection_topic', 10)
         
     def publish_detection_info(self, detection):
         msg = Detection()

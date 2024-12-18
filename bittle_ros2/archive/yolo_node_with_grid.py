@@ -29,7 +29,7 @@ class YoloDetectionNode(Node):
         self.bridge = CvBridge()
 
         # Load YOLOv8 model
-        self.model = YOLO('/home/reid/Projects/Bittle/Bittle_LLM/yolo/runs/detect/train6/weights/best.pt')  # Replace with your custom model path if needed
+        self.model = YOLO('/home/reid/projects/bittle/autonomous-bittle/code_on_desktop/yolo/runs/detect/train3/weights/best.pt')  # Replace with your custom model path if needed
 
         self.colors = {
             0: (255, 0, 0),   # Color for class 0 (e.g., red)
@@ -106,8 +106,8 @@ class YoloDetectionNode(Node):
                 yaw = -np.float64(yaw)
 
             # Draw grid on the frame
-            draw_grid(frame, pxstep=self.pxstep, pystep=self.pystep)
-            print(f"Frame shape: {frame.shape}")
+            #draw_grid(frame, pxstep=self.pxstep, pystep=self.pystep)
+            #print(f"Frame shape: {frame.shape}")
             
             # Create a copy of the frame with grids for saving without bounding boxes
             clean_frame_with_grids = frame.copy()

@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist
 
 dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance'}
 
+# This is a simple driver for the Bittle robot. It listens to the /cmd_vel topic and sends commands to the robot. It uses a GUI window to send commands
 
 class Driver(Node):
 

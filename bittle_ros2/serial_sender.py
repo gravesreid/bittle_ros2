@@ -9,7 +9,7 @@ import threading
 import time
 
 class SerialSender(Node):
-    def __init__(self, port='/dev/ttyAMA0'):
+    def __init__(self, port='/dev/ttyS0'):
         super().__init__('serial_sender')
         self.ser = serial.Serial(
             port=port,
