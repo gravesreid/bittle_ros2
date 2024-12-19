@@ -18,7 +18,7 @@ def generate_launch_description():
                 {'video_device': '/dev/video0'},
                 {'output_encoding': 'rgb8'},
                 {'pixel_format': 'YUYV'},
-                {'image_size': [640,480]},
+                {'image_size': [1280,960]},
                 {'io_method': 'mmap'}
             ]
         ),

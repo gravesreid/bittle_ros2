@@ -11,7 +11,7 @@ class MJPEGStreamPublisher(Node):
         self.bridge = CvBridge()
         self.publisher_ = self.create_publisher(Image, '/camera/stream', 30)
         self.timer = self.create_timer(0.01, self.timer_callback)  # Adjust as needed
-        self.stream_url = "http://192.168.1.182:8000/stream.mjpg"
+        self.stream_url = "http://192.168.1.187:8000/stream.mjpg"
         self.cap = cv2.VideoCapture(self.stream_url)
         
         if not self.cap.isOpened():

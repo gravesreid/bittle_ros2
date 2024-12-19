@@ -16,11 +16,6 @@ setup(
         (os.path.join('share', package_name), glob('bittle_ros2/*.py')),
     ],
     install_requires=['setuptools'],
-    options={
-        'build_scripts': {
-            'executable' : '/home/reid/envs/bittle/bin/python',
-        }
-    },
     zip_safe=True,
     maintainer='reid',
     maintainer_email='rgraves@andrew.cmu.edu',
