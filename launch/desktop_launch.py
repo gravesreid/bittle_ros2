@@ -4,9 +4,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='bittle_ros2',
-            executable='object_detection_driver',
-            name='object_detection_driver',
+            package='joy',
+            executable='joy_node',
+            name='joy_node',
             output='screen'
         ),
         Node(
@@ -24,8 +24,14 @@ def generate_launch_description():
         ),
         Node(
             package='bittle_ros2',
-            executable='robot_object_detection_subscriber',
-            name='robot_object_detection_subscriber',
+            executable='yolo_node',
+            name='yolo_node',
+            output='screen'
+        ),
+        Node(
+            package='bittle_ros2',
+            executable='apriltag_node',
+            name='apriltag_node',
             output='screen'
         )
     ])

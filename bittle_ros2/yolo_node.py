@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/reid/envs/bittle/bin/python
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
@@ -23,9 +23,12 @@ class ImageSubscriber(Node):
         
         # Create detection publisher
         self.detection_publisher = DetectionPublisher()
+        
+        # Create image publisher
+        self.image_publisher = self.create_publisher(CompressedImage, 'yolo_detections/compressed', 10)
 
     def listener_callback(self, data):
-        self.get_logger().info('Receiving video frame')
+        #self.get_logger().info('Receiving video frame')
         current_frame = self.bridge.compressed_imgmsg_to_cv2(data, desired_encoding='bgr8')
 
         # Perform object detection
@@ -33,8 +36,9 @@ class ImageSubscriber(Node):
         
         annotated_frame = results[0].plot()
 
-        cv2.imshow("YOLOv5 Detection", annotated_frame)
-        cv2.waitKey(1)
+        # Publish annotated frame
+        image_message = self.bridge.cv2_to_compressed_imgmsg(annotated_frame)
+        self.image_publisher.publish(image_message)
         
         # Publish detection results
         if len(results) > 0:
@@ -71,7 +75,7 @@ class DetectionPublisher(Node):
         # Assign the flattened list of floats to 'msg.xywhn_list'
         msg.xywhn_list = flattened_xywhn_list
         self.publisher.publish(msg)
-        self.get_logger().info('Publishing detection')
+        #self.get_logger().info('Publishing detection')
 
 
 def main(args=None):

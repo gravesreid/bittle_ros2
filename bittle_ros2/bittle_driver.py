@@ -16,7 +16,7 @@ dir_dict = {1: 'kcrF', -1: 'kbk', 2: 'kcrL', 3: 'kcrR', 0: 'kbalance'}
 
 class Driver(Node):
 
-    def __init__(self, port='/dev/ttyAMA0'):
+    def __init__(self, port='/dev/ttyS0'):
         super().__init__('cmd_vel_listener')
         self.dir = 0
         self.subscription = self.create_subscription(

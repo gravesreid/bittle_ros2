@@ -16,6 +16,11 @@ setup(
         (os.path.join('share', package_name), glob('bittle_ros2/*.py')),
     ],
     install_requires=['setuptools'],
+    options={
+        'build_scripts': {
+            'executable' : '/home/reid/envs/bittle/bin/python',
+        }
+    },
     zip_safe=True,
     maintainer='reid',
     maintainer_email='rgraves@andrew.cmu.edu',
@@ -32,9 +37,8 @@ setup(
             'serial_sender = bittle_ros2.serial_sender:main',
             'webvid_publisher = bittle_ros2.webvid_publisher:main',
             'webvid_subscriber = bittle_ros2.webvid_subscriber:main',
-            'overhead_cam = bittle_ros2.overhead_cam:main',
             'yolo_node = bittle_ros2.yolo_node:main',
-            'test_topic = bittle_ros2.test_topic:main',
+            'apriltag_node = bittle_ros2.apriltag_node:main',
         ],
     },
 )

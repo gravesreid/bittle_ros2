@@ -14,7 +14,7 @@ dir_dict = {1: 'kwkArmF', -1: 'kbk', 2: 'kwkArmL', 3: 'kwkArmR', -2: 'kbalance',
 
 class Driver(Node):
 
-    def __init__(self, port='/dev/ttyAMA0'):
+    def __init__(self, port='/dev/ttyS0'):
         super().__init__('joy_listener')  # Update node name if desired
         self.dir = 0
         self.subscription = self.create_subscription(
