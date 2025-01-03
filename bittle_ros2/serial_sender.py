@@ -53,27 +53,6 @@ class SerialSender(Node):
         response = self.ser.readline().decode().strip()
         self.get_logger().info(f"Received: {response}")
 
-    def read_from_serial(self):
-        self.get_logger().info("Starting read_from_serial thread")
-        while True:
-            if self.ser.in_waiting > 0:
-                self.get_logger().info("Data available in serial buffer")
-                response = self.ser.readline().decode().strip()
-                self.get_logger().info(f"Received: {response}")
-                if response:
-                    self.publish_response(response)
-                else:
-                    self.get_logger().info("Received empty response")
-                self.ser.reset_input_buffer()  # Clear the input buffer
-            else:
-                self.get_logger().info("No data in serial buffer")
-            time.sleep(0.1)  # Add a small delay to avoid busy-waiting
-
-    def publish_response(self, response):
-        msg = SerialResponse()
-        msg.response = response
-        self.response_publisher.publish(msg)
-        self.get_logger().info(f"Published Response: {response}")
 
 
 
