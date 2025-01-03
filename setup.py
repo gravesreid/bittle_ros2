@@ -1,6 +1,7 @@
 from setuptools import find_packages, setup
 import os
 from glob import glob
+import sys
 
 package_name = 'bittle_ros2'
 
@@ -16,6 +17,11 @@ setup(
         (os.path.join('share', package_name), glob('bittle_ros2/*.py')),
     ],
     install_requires=['setuptools'],
+    options={
+        'build_scripts': {
+            'executable': sys.executable,  # Use the current Python executable
+        }
+    },
     zip_safe=True,
     maintainer='reid',
     maintainer_email='rgraves@andrew.cmu.edu',
@@ -34,6 +40,7 @@ setup(
             'webvid_subscriber = bittle_ros2.webvid_subscriber:main',
             'yolo_node = bittle_ros2.yolo_node:main',
             'apriltag_node = bittle_ros2.apriltag_node:main',
+            'mapping_node = bittle_ros2.mapping_node:main',
         ],
     },
 )
