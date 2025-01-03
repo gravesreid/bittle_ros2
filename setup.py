@@ -36,6 +36,7 @@ setup(
             'image_save_subscriber = bittle_ros2.image_save_subscriber:main',
             'demo_driver = bittle_ros2.demo_driver:main',
             'serial_sender = bittle_ros2.serial_sender:main',
+            'send_manual_cmd = bittle_ros2.send_manual_cmd:main',
             'webvid_publisher = bittle_ros2.webvid_publisher:main',
             'webvid_subscriber = bittle_ros2.webvid_subscriber:main',
             'yolo_node = bittle_ros2.yolo_node:main',
