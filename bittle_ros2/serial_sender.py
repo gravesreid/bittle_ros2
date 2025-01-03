@@ -55,8 +55,11 @@ class SerialSender(Node):
                 self.get_logger().info("Data available in serial buffer")
                 response = self.ser.readline().decode().strip()
                 self.get_logger().info(f"Received: {response}")
+                if response:
+                    self.publish_response(response)
+                else:
+                    self.get_logger().info("Received empty response")
                 self.ser.flushInput()  # Clear the input buffer
-                self.publish_response(response)
             else:
                 self.get_logger().info("No data in serial buffer")
             time.sleep(0.1)  # Add a small delay to avoid busy-waiting
