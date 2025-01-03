@@ -33,6 +33,9 @@ class SerialSender(Node):
             'response',
             10
         )
+
+        self.serial_lock = threading.Lock()
+        self.running = True
         
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
@@ -44,12 +47,13 @@ class SerialSender(Node):
             time.sleep(delay)
 
     def send_command(self, cmd):
-        instrStr = cmd + '\n'
-        self.get_logger().info(f"Sending: {instrStr.strip()}")
-        self.ser.write(instrStr.encode())
-        # read response
-        response = self.ser.readline().decode().strip()
-        self.get_logger().info(f"Received: {response}")
+        with self.serial_lock:
+            instrStr = cmd + '\n'
+            self.get_logger().info(f"Sending: {instrStr.strip()}")
+            self.ser.write(instrStr.encode())
+            # read response
+            response = self.ser.readline().decode().strip()
+            self.get_logger().info(f"Received: {response}")
 
     def read_from_serial(self):
         self.get_logger().info("Starting read_from_serial thread")
@@ -72,6 +76,12 @@ class SerialSender(Node):
         msg.response = response
         self.response_publisher.publish(msg)
         self.get_logger().info(f"Published Response: {response}")
+
+    def destroy_node(self):
+        self.running = False
+        self.serial_thread.join()
+        self.ser.close()
+        super().destroy_node()
 
 
 
