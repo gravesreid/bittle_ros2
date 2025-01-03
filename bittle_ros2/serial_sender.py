@@ -54,6 +54,7 @@ class SerialSender(Node):
             if self.ser.in_waiting > 0:
                 self.get_logger().info("Data available in serial buffer")
                 response = self.ser.readline().decode().strip()
+                self.get_logger().info(f"Received: {response}")
                 self.ser.flushInput()  # Clear the input buffer
                 self.publish_response(response)
             else:
