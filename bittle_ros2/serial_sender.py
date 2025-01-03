@@ -47,6 +47,9 @@ class SerialSender(Node):
         instrStr = cmd + '\n'
         self.get_logger().info(f"Sending: {instrStr.strip()}")
         self.ser.write(instrStr.encode())
+        # read response
+        response = self.ser.readline().decode().strip()
+        self.get_logger().info(f"Received: {response}")
 
     def read_from_serial(self):
         self.get_logger().info("Starting read_from_serial thread")
