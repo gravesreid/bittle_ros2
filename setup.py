@@ -42,6 +42,9 @@ setup(
             'yolo_node = bittle_ros2.yolo_node:main',
             'apriltag_node = bittle_ros2.apriltag_node:main',
             'mapping_node = bittle_ros2.mapping_node:main',
+            'move_to_point_node = bittle_ros2.move_to_point_node:main',
+            'send_manual_goal = bittle_ros2.send_manual_goal:main',
+            'robot_to_grid_node = bittle_ros2.robot_to_grid_node:main',
         ],
     },
 )

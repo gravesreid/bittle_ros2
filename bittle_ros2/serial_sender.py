@@ -8,6 +8,7 @@ from sensor_msgs.msg import Imu
 import threading
 import time
 
+
 class SerialSender(Node):
     def __init__(self, port='/dev/ttyS0'):
         super().__init__('serial_sender')
@@ -34,11 +35,6 @@ class SerialSender(Node):
             10
         )
 
-        self.serial_lock = threading.Lock()
-        
-        self.serial_thread = threading.Thread(target=self.read_from_serial)
-        self.serial_thread.daemon = True
-        self.serial_thread.start()
 
     def command_callback(self, msg):
         for cmd, delay in zip(msg.cmd, msg.delay):

@@ -14,7 +14,7 @@ class CommandPublisher(Node):
         self.publisher_ = self.create_publisher(Command, 'command', 10)
         self.detection_subscription = self.create_subscription(
             Detection,
-            'detection',
+            'apriltag_topic',
             self.detection_callback,
             10,
             callback_group=ReentrantCallbackGroup()
