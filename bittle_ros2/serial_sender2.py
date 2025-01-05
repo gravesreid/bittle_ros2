@@ -29,14 +29,10 @@ class SerialSender(Node):
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
         self.serial_thread.start()
-        self.command_to_send = None
-        self.last_command_sent = None
 
     def command_callback(self, msg):
         for cmd, delay in zip(msg.cmd, msg.delay):
-            self.command_to_send = cmd
-            while self.last_command_sent != self.command_to_send:
-                self.send_command(cmd)
+            self.send_command(cmd)
             time.sleep(delay)
 
     def send_command(self, cmd):
@@ -47,8 +43,6 @@ class SerialSender(Node):
         response = self.communication.Read_Line().decode('utf-8').strip()
         self.get_logger().info(f"Received: {response}")
         if response:
-            if response == self.command_to_send:
-                self.last_command_sent = response
             self.publish_response(response)
 
     def read_from_serial(self):
