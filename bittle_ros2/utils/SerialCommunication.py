@@ -196,6 +196,7 @@ if __name__ == '__main__':
         print("No serial ports found.")
     else:
         myCom = Communication(port[0], 115200, 1)
+        print(f'Using port {port[0]}')
         print("Ret = ", Ret)
         myCom.Open_Engine()
 
