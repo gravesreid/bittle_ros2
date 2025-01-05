@@ -53,7 +53,10 @@ class SerialSender(Node):
                 response = self.communication.Read_Line().decode('utf-8').strip()
                 self.get_logger().info(f"Received: {response}")
                 if response:
-                    self.publish_response(response)
+                    if response == "k":
+                        response = "received token"
+                    else:
+                        self.publish_response(response)
                 else:
                     self.get_logger().info("Received empty response")
                 self.communication.main_engine.reset_input_buffer()  # Clear the input buffer
@@ -72,6 +75,7 @@ def main(args=None):
         print("No serial ports found.")
         return
     serial_sender = SerialSender(port_list_number[0])
+    print(f'Using port {port_list_number[0]}')
     
     executor = MultiThreadedExecutor()
     rclpy.spin(serial_sender, executor=executor)
