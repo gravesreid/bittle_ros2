@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from bittle_msgs.msg import AprilTag, Command, Point
+from bittle_msgs.srv import SerialCommand
 import numpy as np
 
 '''
@@ -20,11 +21,14 @@ class MoveToPointNode(Node):
             '/goal_point',
             self.goal_point_callback,
             10)
-        self.command_publisher = self.create_publisher(
-            Command,
-            'command',
-            10
+        self.command_client = self.create_client(
+            SerialCommand,
+            'serial_command'
         )
+        while not self.command_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+
+        self.command_request = SerialCommand.Request()
         self.apriltag_positions = []
         self.goal_point = None
         self.current_heading = None
@@ -41,7 +45,7 @@ class MoveToPointNode(Node):
         self.apriltag_positions.clear()
         if len(msg.center) == 0:
             self.get_logger().info('No AprilTag detected.')
-            self.publish_command('krest', 0.0)
+            self.send_command('krest', 0.0)
             return
         else:
             x, y = msg.center
@@ -79,34 +83,32 @@ class MoveToPointNode(Node):
         self.get_logger().info(f'Current heading: {self.current_heading}')
         if error < 20:
             self.get_logger().info('Reached target square.')
-            self.publish_command('krest',0.0)
+            self.send_command('krest',0.0)
         else:
             self.adjust_heading(theta)
 
     def adjust_heading(self, theta):
         if abs(theta) < self.crawl_threshold:
-            self.publish_command('kcrF', 0.0)
+            self.send_command('kcrF', 0.0)
         elif abs(theta) > self.turn_threshold:
             if theta > 0:
-                self.publish_command('kvtL', 0.5)
+                self.send_command('kvtL', 0.5)
             else:
-                self.publish_command('kvtR', 0.5)
+                self.send_command('kvtR', 0.5)
         elif self.turn_threshold > abs(theta) > self.crawl_threshold:
             if theta > 0:
-                self.publish_command('kcrL', 0.5)
+                self.send_command('kcrL', 0.5)
             else:
-                self.publish_command('kcrR', 0.5)
+                self.send_command('kcrR', 0.5)
 
-    def publish_command(self, command, delay):
+    def send_command(self, command, delay):
         if command != self.current_cmd:
             self.current_cmd = command
-            msg = Command()
-            msg.cmd = [command]
-            msg.delay = [delay]
-            self.command_publisher.publish(msg)
-            self.get_logger().info(f'Publishing: {msg.cmd} with delay {msg.delay}')
-        else:
-            self.get_logger().info(f'Command already published: {command}')
+            self.command_request.cmd = command
+            self.command_request.delay = delay
+            self.future = self.command_client.call_async(self.command_request)
+            rclpy.spin_until_future_complete(self, self.future)
+            return self.future.result()
 
 def main(args=None):
     rclpy.init(args=args)

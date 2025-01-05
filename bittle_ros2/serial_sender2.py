@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
-from bittle_msgs.msg import Command, SerialResponse
+from bittle_msgs.srv import SerialCommand
 import threading
 import time
 from bittle_ros2.utils.SerialCommunication import Communication, port_list_number
@@ -11,39 +11,34 @@ class SerialSender(Node):
     def __init__(self, port='/dev/ttyS0'):
         super().__init__('serial_sender')
         self.communication = Communication(port, 115200, 1)
-        
-        self.subscription = self.create_subscription(
-            Command,
-            'command',
-            self.command_callback,
-            10,
-            callback_group=ReentrantCallbackGroup()
-        )
-        
-        self.response_publisher = self.create_publisher(
-            SerialResponse,
-            'response',
-            10
+
+        self.response_server = self.create_service(
+            SerialCommand,
+            'serial_command',
+            self.command_callback
         )
         
         self.serial_thread = threading.Thread(target=self.read_from_serial)
         self.serial_thread.daemon = True
         self.serial_thread.start()
 
-    def command_callback(self, msg):
-        for cmd, delay in zip(msg.cmd, msg.delay):
-            self.send_command(cmd)
-            time.sleep(delay)
+    def command_callback(self, request, response):
+        cmd = request.cmd
+        delay = request.delay
+        self.send_command(cmd, response)
+        time.sleep(delay)
+        return response
 
-    def send_command(self, cmd):
+    def send_command(self, cmd, response):
         instrStr = cmd + '\n'
         self.get_logger().info(f"Sending: {instrStr.strip()}")
         self.communication.Send_data(instrStr.encode('utf-8'))
         # read response
-        response = self.communication.Read_Line().decode('utf-8').strip()
-        self.get_logger().info(f"Received: {response}")
-        if response:
-            self.publish_response(response)
+        response_from_UART = self.communication.Read_Line().decode('utf-8').strip()
+        self.get_logger().info(f"Received: {response_from_UART}")
+        if response_from_UART:
+            response.reply = response_from_UART
+        return response
 
     def read_from_serial(self):
         self.get_logger().info("Starting read_from_serial thread")
@@ -61,12 +56,6 @@ class SerialSender(Node):
                     self.get_logger().info("Received empty response")
                 self.communication.main_engine.reset_input_buffer()  # Clear the input buffer
             time.sleep(0.1)  # Add a small delay to avoid busy-waiting
-
-    def publish_response(self, response):
-        msg = SerialResponse()
-        msg.response = response
-        self.response_publisher.publish(msg)
-        self.get_logger().info(f"Published Response: {response}")
 
 def main(args=None):
     rclpy.init(args=args)
