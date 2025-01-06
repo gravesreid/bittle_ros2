@@ -37,7 +37,7 @@ class MoveToPointNode(Node):
         self.detections = []
         self.command_queue = []
         self.crawl_threshold = 10
-        self.turn_threshold = 40
+        self.turn_threshold = 180
         self.get_logger().info('move_to_point_node node started')
 
 
