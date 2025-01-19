@@ -46,6 +46,7 @@ setup(
             'move_to_point_node = bittle_ros2.move_to_point_node:main',
             'send_manual_goal = bittle_ros2.send_manual_goal:main',
             'robot_to_grid_node = bittle_ros2.robot_to_grid_node:main',
+            'occupancy_grid_publisher = bittle_ros2.occupancy_grid_publisher:main',
         ],
     },
 )
